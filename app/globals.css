@@ -1,26 +1,185 @@
 @import "tailwindcss";
 
+/* theme-tokens:start (generated from the colors used in components; edit the dark values freely) */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --c-bg-0c1b4c: #0c1b4c;
+  --c-bg-0ea5a4: #0ea5a4;
+  --c-bg-2757d6: #2757d6;
+  --c-bg-2f66f5: #2f66f5;
+  --c-bg-64748b: #64748b;
+  --c-bg-7c5ce0: #7c5ce0;
+  --c-bg-d8f3e4: #d8f3e4;
+  --c-bg-e3e6f0: #e3e6f0;
+  --c-bg-e3ecff: #e3ecff;
+  --c-bg-eaf0ff: #eaf0ff;
+  --c-bg-edf0f4: #edf0f4;
+  --c-bg-f1f2f6: #f1f2f6;
+  --c-bg-f1f3f9: #f1f3f9;
+  --c-bg-f2fbf6: #f2fbf6;
+  --c-bg-f3f7ff: #f3f7ff;
+  --c-bg-f5f6fa: #f5f6fa;
+  --c-bg-f6f7fb: #f6f7fb;
+  --c-bg-f8f9ff: #f8f9ff;
+  --c-bg-f97316: #f97316;
+  --c-bg-fafafc: #fafafc;
+  --c-bg-fafbfc: #fafbfc;
+  --c-bg-fbfcfe: #fbfcfe;
+  --c-bg-fff6f4: #fff6f4;
+  --c-bg-ffffff: #ffffff;
+  --c-border-0c1b4c: #0c1b4c;
+  --c-border-2f66f5: #2f66f5;
+  --c-border-4f7cf5: #4f7cf5;
+  --c-border-6c95f7: #6c95f7;
+  --c-border-73c999: #73c999;
+  --c-border-b9bfd3: #b9bfd3;
+  --c-border-c7d6fa: #c7d6fa;
+  --c-border-c9cedb: #c9cedb;
+  --c-border-cdd3e0: #cdd3e0;
+  --c-border-d0d6ee: #d0d6ee;
+  --c-border-d3d8e2: #d3d8e2;
+  --c-border-d6dae6: #d6dae6;
+  --c-border-d6e2fa: #d6e2fa;
+  --c-border-d8ddec: #d8ddec;
+  --c-border-e0553a: #e0553a;
+  --c-border-e3e6f0: #e3e6f0;
+  --c-border-e3e7f0: #e3e7f0;
+  --c-border-e4e7ee: #e4e7ee;
+  --c-border-e5e8f0: #e5e8f0;
+  --c-border-edf0f4: #edf0f4;
+  --c-border-edf0f5: #edf0f5;
+  --c-border-f97316: #f97316;
+  --c-border-ffffff: #ffffff;
+  --c-text-0c1b4c: #0c1b4c;
+  --c-text-1f44b3: #1f44b3;
+  --c-text-2b3352: #2b3352;
+  --c-text-2f66f5: #2f66f5;
+  --c-text-43aa77: #43aa77;
+  --c-text-4a5272: #4a5272;
+  --c-text-4e5b79: #4e5b79;
+  --c-text-667087: #667087;
+  --c-text-6b7390: #6b7390;
+  --c-text-7b8497: #7b8497;
+  --c-text-8891a5: #8891a5;
+  --c-text-99a1b1: #99a1b1;
+  --c-text-9aa1b8: #9aa1b8;
+  --c-text-9ca4b4: #9ca4b4;
+  --c-text-9da5b5: #9da5b5;
+  --c-text-a0a8b8: #a0a8b8;
+  --c-text-a2a9b8: #a2a9b8;
+  --c-text-b1b7c4: #b1b7c4;
+  --c-text-c2410c: #c2410c;
+  --c-text-dce6ff: #dce6ff;
+  --c-text-e0553a: #e0553a;
+  --background: #fafafc;
+  --foreground: #0c1b4c;
+  --loader-shadow: rgba(15, 33, 103, 0.15);
 }
+
+.dark {
+  --c-bg-0c1b4c: #0c1b4c;
+  --c-bg-0ea5a4: #0ea5a4;
+  --c-bg-2757d6: #2757d6;
+  --c-bg-2f66f5: #2f66f5;
+  --c-bg-64748b: #64748b;
+  --c-bg-7c5ce0: #7c5ce0;
+  --c-bg-d8f3e4: #1c3d2e;
+  --c-bg-e3e6f0: #262f4d;
+  --c-bg-e3ecff: #203462;
+  --c-bg-eaf0ff: #1a2a55;
+  --c-bg-edf0f4: #212a47;
+  --c-bg-f1f2f6: #212a47;
+  --c-bg-f1f3f9: #212a47;
+  --c-bg-f2fbf6: #12281f;
+  --c-bg-f3f7ff: #17254a;
+  --c-bg-f5f6fa: #1d2644;
+  --c-bg-f6f7fb: #1d2644;
+  --c-bg-f8f9ff: #1a2442;
+  --c-bg-f97316: #f97316;
+  --c-bg-fafafc: #0d1326;
+  --c-bg-fafbfc: #0d1326;
+  --c-bg-fbfcfe: #0d1326;
+  --c-bg-fff6f4: #3a1d1b;
+  --c-bg-ffffff: #151c33;
+  --c-border-0c1b4c: #e8ecff;
+  --c-border-2f66f5: #2f66f5;
+  --c-border-4f7cf5: #4f7cf5;
+  --c-border-6c95f7: #6c95f7;
+  --c-border-73c999: #73c999;
+  --c-border-b9bfd3: #4a5478;
+  --c-border-c7d6fa: #2c3f73;
+  --c-border-c9cedb: #3a4466;
+  --c-border-cdd3e0: #3a4466;
+  --c-border-d0d6ee: #3a4466;
+  --c-border-d3d8e2: #3a4466;
+  --c-border-d6dae6: #3a4466;
+  --c-border-d6e2fa: #2c3f73;
+  --c-border-d8ddec: #3a4466;
+  --c-border-e0553a: #e0553a;
+  --c-border-e3e6f0: #2a3354;
+  --c-border-e3e7f0: #2a3354;
+  --c-border-e4e7ee: #2a3354;
+  --c-border-e5e8f0: #2a3354;
+  --c-border-edf0f4: #232b49;
+  --c-border-edf0f5: #232b49;
+  --c-border-f97316: #f97316;
+  --c-border-ffffff: #151c33;
+  --c-text-0c1b4c: #e8ecff;
+  --c-text-1f44b3: #8fb0ff;
+  --c-text-2b3352: #cfd5ee;
+  --c-text-2f66f5: #6c95f7;
+  --c-text-43aa77: #62c690;
+  --c-text-4a5272: #b4bbd6;
+  --c-text-4e5b79: #aab2cf;
+  --c-text-667087: #9aa3c0;
+  --c-text-6b7390: #9aa3c0;
+  --c-text-7b8497: #9aa3c0;
+  --c-text-8891a5: #8089a8;
+  --c-text-99a1b1: #8089a8;
+  --c-text-9aa1b8: #8089a8;
+  --c-text-9ca4b4: #8089a8;
+  --c-text-9da5b5: #8089a8;
+  --c-text-a0a8b8: #6b7494;
+  --c-text-a2a9b8: #6b7494;
+  --c-text-b1b7c4: #6b7494;
+  --c-text-c2410c: #fb923c;
+  --c-text-dce6ff: #dce6ff;
+  --c-text-e0553a: #ff7a62;
+  --background: #0b1020;
+  --foreground: #e8ecff;
+  --loader-shadow: rgba(50, 197, 255, 0.32);
+}
+/* theme-tokens:end */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-sc-dream), 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+  --font-mono: var(--font-sc-dream), 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* keep Korean words together when wrapping */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Toasts (sonner): brand action button, calmer close button */
+.app-toast-action {
+  background: #2f66f5 !important;
+  color: #ffffff !important;
+  font-weight: 700;
+}
+.app-toast-action:hover {
+  background: #2757d6 !important;
+}
+.app-toast-close {
+  background: var(--c-bg-ffffff) !important;
+  border-color: var(--c-border-e3e6f0) !important;
+  color: var(--c-text-7b8497) !important;
 }
