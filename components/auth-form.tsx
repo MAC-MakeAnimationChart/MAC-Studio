@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { AdSlot } from "@/components/ad-slot";
 import { login } from "@/lib/auth";
 import {
   CODE_LENGTH,
@@ -312,11 +313,15 @@ export function AuthForm({ mode, embedded = false, onDone, onSwitch }: Props) {
 
   if (embedded) return <div>{content}</div>;
 
+  // The login / sign-up pages: the form in the middle, an ad on each side (wide screens only,
+  // so phones and narrow windows keep the form uncluttered).
   return (
-    <div className="mx-auto w-full max-w-[420px] px-6 py-16">
-      <div className="rounded-lg border border-[color:var(--c-border-e5e8f0)] bg-[color:var(--c-bg-ffffff)] p-7 shadow-[0_8px_30px_rgba(37,52,89,0.03)] sm:p-8">
+    <div className="mx-auto flex w-full max-w-[1100px] items-start justify-center gap-8 px-6 py-16">
+      <AdSlot variant="skyscraper" className="sticky top-24 hidden lg:flex" />
+      <div className="w-full max-w-[420px] rounded-lg border border-[color:var(--c-border-e5e8f0)] bg-[color:var(--c-bg-ffffff)] p-7 shadow-[0_8px_30px_rgba(37,52,89,0.03)] sm:p-8">
         {content}
       </div>
+      <AdSlot variant="skyscraper" className="sticky top-24 hidden lg:flex" />
     </div>
   );
 }
