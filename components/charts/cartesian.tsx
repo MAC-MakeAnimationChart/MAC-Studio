@@ -4,17 +4,28 @@ import type { ChartSpec } from '@/lib/chart-spec'
 import { PLOT_H, SvgText, W, textWidth, type Layout } from './frame'
 
 // Axes shared by the charts that plot values against categories (bar, line, ...).
-function niceMax(max: number) {
-  if (max <= 0) return 1
-  const pow = 10 ** Math.floor(Math.log10(max))
-  const n = max / pow
-  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * pow
+// Like d3's scale.nice(): about 4 intervals with a round step (1, 2, 2.5, 5 x 10^n), and the top
+// of the axis is the first tick at or above the data. Max 2,900 -> 0..3,000 in steps of 1,000.
+const TARGET_INTERVALS = 4
+
+function niceScale(dataMax: number) {
+  if (dataMax <= 0) return { step: 1, max: 1 }
+  const raw = dataMax / TARGET_INTERVALS
+  const pow = 10 ** Math.floor(Math.log10(raw))
+  const n = raw / pow
+  const step = (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * pow
+  // round away float noise before ceil so an exact multiple does not gain a tick
+  const intervals = Math.ceil(Math.round((dataMax / step) * 1e6) / 1e6)
+  return { step, max: step * intervals }
 }
 
 export function cartesian(spec: ChartSpec, data: ChartData, layout: Layout) {
-  const max = niceMax(Math.max(...data.values, 0))
-  const ticks = [0, 0.25, 0.5, 0.75, 1].map((t) => t * max)
-  const tickLabels = ticks.map((t) => (max < 10 ? String(Math.round(t * 10) / 10) : Math.round(t).toLocaleString()))
+  const scale = niceScale(Math.max(...data.values, 0))
+  const max = scale.max
+  const tickCount = Math.round(max / scale.step)
+  const decimals = scale.step >= 1 ? (Number.isInteger(scale.step) ? 0 : 1) : Math.ceil(-Math.log10(scale.step))
+  const ticks = Array.from({ length: tickCount + 1 }, (_, i) => Number((i * scale.step).toFixed(decimals)))
+  const tickLabels = ticks.map((t) => t.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals }))
   const left = 12 + Math.max(...tickLabels.map((l) => textWidth(l, spec.textSize))) + 8
   const right = 24
   const count = Math.max(data.labels.length, 1)

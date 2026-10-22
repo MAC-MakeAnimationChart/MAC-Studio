@@ -12,7 +12,7 @@ const steps = [
   { title: "차트 선택", desc: "차트를 하나 골라요." },
   { title: "변환", desc: "기본값으로 자동 설정돼요." },
   { title: "차트 수정", desc: "제목, 색상, 범례를 다듬어요." },
-  { title: "추출하기", desc: "PNG, TIFF, SVG로 내려받아요." },
+  { title: "추출하기", desc: "JPG, PNG, TIFF로 내려받아요." },
 ];
 
 const available = STUDIO_CATALOG.filter((c) => c.available).length;
@@ -31,8 +31,8 @@ export default function Home() {
           차트가 완성돼요.
         </h1>
         <p className="max-w-[560px] text-[17px] leading-[1.75] text-[color:var(--c-text-4a5272)]">
-          코딩 없이 CSV나 엑셀 파일만 올리세요. 차트를 고르고 다듬어서 PNG,
-          TIFF, SVG로 바로 내려받을 수 있어요. 파일은 내 브라우저 안에서만
+          코딩 없이 CSV나 엑셀 파일만 올리세요. 차트를 고르고 다듬어서 JPG,
+          PNG, TIFF로 바로 내려받을 수 있어요. 파일은 내 브라우저 안에서만
           처리돼요.
         </p>
         <div className="flex flex-wrap justify-center gap-3">
@@ -147,7 +147,7 @@ export default function Home() {
               <dt className="text-[color:var(--c-text-6b7390)]">올리기</dt>
               <dd>CSV, XLSX</dd>
               <dt className="text-[color:var(--c-text-6b7390)]">내려받기</dt>
-              <dd>PNG, TIFF, SVG (이미지) · CSV (데이터)</dd>
+              <dd>JPG, PNG, TIFF (이미지) · CSV (데이터)</dd>
             </dl>
           </div>
           <div className="rounded-lg border border-[color:var(--c-border-e3e6f0)] bg-[color:var(--c-bg-ffffff)] p-7">

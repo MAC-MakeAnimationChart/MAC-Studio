@@ -41,6 +41,19 @@ export type ChartSpec = {
 export const titleDefaults: TextStyle = { size: 16, bold: true, align: 'center' }
 export const subtitleDefaults: TextStyle = { size: 12, bold: false, align: 'center' }
 
+// "월별 방문자" from the item column "월" and the value column "방문자"; "Visitors by Month" for
+// non-Korean headers. The title follows the column choice until the user types their own.
+export function autoTitle(dataset: Dataset, labelCol: number, valueCol: number) {
+  const label = dataset.headers[labelCol]?.trim() ?? ''
+  const value = dataset.headers[valueCol]?.trim() ?? ''
+  if (!label || !value) return value || label
+  if (/[가-힣]$/.test(label)) return `${label}별 ${value}`
+  return `${value} by ${label}`
+}
+
+// A single series needs no legend (the title says what it is); pies list their slices.
+export const defaultLegend = (type: string) => type === 'pie'
+
 export function createChartSpec(id: string, type: string, dataset: Dataset): ChartSpec {
   const valueCol = numericColumns(dataset)[0] ?? 1
   return {
@@ -53,7 +66,7 @@ export function createChartSpec(id: string, type: string, dataset: Dataset): Cha
     topN: null,
     topMode: 'first',
     groupOthers: false,
-    title: dataset.headers[valueCol] ?? '',
+    title: autoTitle(dataset, 0, valueCol),
     titleStyle: { ...titleDefaults },
     subtitle: '',
     subtitleStyle: { ...subtitleDefaults },
@@ -64,7 +77,7 @@ export function createChartSpec(id: string, type: string, dataset: Dataset): Cha
     barShade: 0,
     textSize: 11,
     textBold: false,
-    legend: true,
+    legend: defaultLegend(type),
     legendSize: 12,
     legendBold: false,
   }

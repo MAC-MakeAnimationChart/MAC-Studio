@@ -325,6 +325,7 @@ export default function EditorPage() {
             getSvg={() => box.current?.querySelector("svg") ?? null}
             dataset={dataset}
             baseName={base}
+            member={!!user}
           />
           {user ? (
             <button
