@@ -5,7 +5,9 @@ import { useState } from "react";
 const TABS = ["막대 차트", "선 차트", "원형 차트"] as const;
 type Tab = (typeof TABS)[number];
 
-const BLUE = "#2F66F5";
+import { PALETTE } from "@/lib/chart-palette";
+
+const BLUE = PALETTE[0].value;
 const MONTHS = ["1월", "2월", "3월", "4월", "5월", "6월"];
 const XS = [109, 199, 289, 379, 469, 559];
 const YS = [160, 118, 140, 86, 98, 58];
@@ -122,19 +124,25 @@ function Demo({ tab }: { tab: Tab }) {
       </text>
       <g transform="translate(200 165)" stroke="#fff" strokeWidth="2">
         <path d="M0 0 L0 -100 A100 100 0 0 1 95.1 30.9 Z" fill={BLUE} />
-        <path d="M0 0 L95.1 30.9 A100 100 0 0 1 -58.8 80.9 Z" fill="#5B8CF8" />
+        <path
+          d="M0 0 L95.1 30.9 A100 100 0 0 1 -58.8 80.9 Z"
+          fill={PALETTE[1].value}
+        />
         <path
           d="M0 0 L-58.8 80.9 A100 100 0 0 1 -95.1 -30.9 Z"
-          fill="#4ED3FD"
+          fill={PALETTE[2].value}
         />
-        <path d="M0 0 L-95.1 -30.9 A100 100 0 0 1 0 -100 Z" fill="#F97316" />
+        <path
+          d="M0 0 L-95.1 -30.9 A100 100 0 0 1 0 -100 Z"
+          fill={PALETTE[3].value}
+        />
       </g>
       <g fontSize="12" fill="#4A5272">
         {[
           ["검색 35%", BLUE],
-          ["광고 25%", "#5B8CF8"],
-          ["추천 22%", "#4ED3FD"],
-          ["직접 18%", "#F97316"],
+          ["광고 25%", PALETTE[1].value],
+          ["추천 22%", PALETTE[2].value],
+          ["직접 18%", PALETTE[3].value],
         ].map(([label, color], i) => (
           <g key={label}>
             <rect
@@ -226,15 +234,19 @@ export function HeroDemo() {
             </div>
             <div className="flex flex-col gap-2">
               색상
-              <div className="flex gap-2">
-                <span className="size-[22px] rounded-full border-2 border-[color:var(--c-border-0c1b4c)] bg-[color:var(--c-bg-2f66f5)]" />
-                <span className="size-[22px] rounded-full bg-[color:var(--c-bg-0ea5a4)]" />
-                <span className="size-[22px] rounded-full bg-[color:var(--c-bg-7c5ce0)]" />
-                <span className="size-[22px] rounded-full bg-[color:var(--c-bg-64748b)]" />
+              <div className="flex flex-wrap gap-2">
+                {PALETTE.map((c, i) => (
+                  <span
+                    key={c.value}
+                    title={c.name}
+                    className={`size-[22px] rounded-full ${i === 0 ? "border-2 border-[color:var(--c-border-0c1b4c)]" : ""}`}
+                    style={{ background: c.value }}
+                  />
+                ))}
               </div>
             </div>
             <div className="mt-1.5 flex gap-2">
-              {["PNG", "TIFF", "SVG"].map((f) => (
+              {["JPG", "PNG", "TIFF"].map((f) => (
                 <span
                   key={f}
                   className="rounded-md border border-[color:var(--c-border-e3e6f0)] px-3 py-1.5 font-medium text-[color:var(--c-text-0c1b4c)]"

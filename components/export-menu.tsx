@@ -1,31 +1,43 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Download } from "lucide-react";
+import { Download, Lock } from "lucide-react";
+import { useAuthModal } from "@/components/auth-modal";
 import type { Dataset } from "@/lib/csv";
-import { exportCsv, exportPng, exportTiff, outputSize } from "@/lib/export";
+import {
+  exportCsv,
+  exportJpg,
+  exportPng,
+  exportTiff,
+  outputSize,
+} from "@/lib/export";
 
 type Format = { id: string; label: string; desc: string };
 
 // Only what Studio can export today. Add a format here when it is actually built.
 const FORMATS: Format[] = [
+  { id: "jpg", label: "JPG", desc: "용량이 작은 이미지" },
   { id: "png", label: "PNG", desc: "발표·문서용 이미지" },
   { id: "tiff", label: "TIFF", desc: "인쇄·논문 제출용 이미지" },
   { id: "csv", label: "CSV", desc: "차트에 쓰인 데이터" },
 ];
 
 const DPIS = [300, 600];
+const GUEST_MAX_DPI = 300; // 600 dpi is a member feature
 
 type Props = {
   getSvg: () => SVGSVGElement | null;
   dataset: Dataset;
   baseName: string;
+  member: boolean;
 };
 
-export function ExportMenu({ getSvg, dataset, baseName }: Props) {
+export function ExportMenu({ getSvg, dataset, baseName, member }: Props) {
+  const openAuth = useAuthModal();
   const [open, setOpen] = useState(false);
   const [format, setFormat] = useState("png");
-  const [dpi, setDpi] = useState(300);
+  const [chosenDpi, setDpi] = useState(300);
+  const dpi = member ? chosenDpi : Math.min(chosenDpi, GUEST_MAX_DPI);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const root = useRef<HTMLDivElement>(null);
@@ -47,7 +59,7 @@ export function ExportMenu({ getSvg, dataset, baseName }: Props) {
     };
   }, [open]);
 
-  const isImage = format === "png" || format === "tiff";
+  const isImage = format !== "csv";
   const svg = open ? getSvg() : null;
   const size = svg && isImage ? outputSize(svg, dpi) : null;
   const tiffMb =
@@ -62,7 +74,8 @@ export function ExportMenu({ getSvg, dataset, baseName }: Props) {
       if (format === "csv") return exportCsv(dataset, baseName);
       const el = getSvg();
       if (!el) return;
-      if (format === "png") await exportPng(el, baseName, dpi);
+      if (format === "jpg") await exportJpg(el, baseName, dpi);
+      else if (format === "png") await exportPng(el, baseName, dpi);
       else if (format === "tiff") await exportTiff(el, baseName, dpi);
     } catch (e) {
       setError(e instanceof Error ? e.message : "내보내기에 실패했어요.");
@@ -128,19 +141,45 @@ export function ExportMenu({ getSvg, dataset, baseName }: Props) {
             aria-label="해상도"
             className="mt-2 grid grid-cols-2 gap-1.5"
           >
-            {DPIS.map((value) => (
-              <button
-                key={value}
-                role="radio"
-                aria-checked={dpi === value}
-                disabled={!isImage}
-                onClick={() => setDpi(value)}
-                className={`rounded-lg border px-2 py-2 text-[12px] font-bold transition ${dpi === value && isImage ? "border-[color:var(--c-border-4f7cf5)] bg-[color:var(--c-bg-f3f7ff)] text-[color:var(--c-text-1f44b3)]" : "border-[color:var(--c-border-e3e6f0)]"} ${!isImage ? "cursor-not-allowed bg-[color:var(--c-bg-fafafc)] opacity-60" : "hover:border-[color:var(--c-border-c7d6fa)]"}`}
-              >
-                {value}
-              </button>
-            ))}
+            {DPIS.map((value) => {
+              const locked = !member && value > GUEST_MAX_DPI;
+              return (
+                <button
+                  key={value}
+                  role="radio"
+                  aria-checked={dpi === value}
+                  aria-disabled={locked || !isImage}
+                  disabled={!isImage}
+                  onClick={() => {
+                    if (locked) {
+                      setOpen(false);
+                      openAuth("signup");
+                    } else setDpi(value);
+                  }}
+                  className={`flex items-center justify-center gap-1 rounded-lg border px-2 py-2 text-[12px] font-bold transition ${dpi === value && isImage ? "border-[color:var(--c-border-4f7cf5)] bg-[color:var(--c-bg-f3f7ff)] text-[color:var(--c-text-1f44b3)]" : "border-[color:var(--c-border-e3e6f0)]"} ${!isImage ? "cursor-not-allowed bg-[color:var(--c-bg-fafafc)] opacity-60" : locked ? "bg-[color:var(--c-bg-fafafc)] text-[color:var(--c-text-9aa1b8)]" : "hover:border-[color:var(--c-border-c7d6fa)]"}`}
+                >
+                  {locked && <Lock size={12} />}
+                  {value}
+                </button>
+              );
+            })}
           </div>
+          {!member && isImage && (
+            <p className="mt-2 text-[11px] text-[color:var(--c-text-4a5272)]">
+              비회원은 300 DPI까지예요.{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  openAuth("signup");
+                }}
+                className="font-bold text-[color:var(--c-text-2f66f5)] hover:underline"
+              >
+                회원가입하면 600 DPI
+              </button>
+              를 쓸 수 있어요.
+            </p>
+          )}
           <p className="mt-2 text-[11px] leading-[1.6] text-[color:var(--c-text-7b8497)]">
             DPI는 이미지가 얼마나 선명한지를 나타내요. 숫자가 클수록 선명하지만
             파일이 커져요. 보고서·발표는 300, 큰 인쇄물은 600을 권장해요.

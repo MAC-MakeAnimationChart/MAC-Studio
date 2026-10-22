@@ -1,16 +1,22 @@
-// Base colors for charts. The first entry is the Studio brand blue.
-export const BASE_COLORS = ['#2F66F5', '#55bb86', '#f1a56d', '#4aa3c8', '#c05ab0', '#8b93a6']
+// The Studio palette: one list used by the charts (series, slices, color swatches) and by the
+// site itself (landing demo), so they always look like the same product. The first entry is
+// the brand blue and the default chart color; the order is the order slices are colored in.
+export const PALETTE = [
+  { name: '파랑', value: '#2F66F5' },
+  { name: '하늘', value: '#4ED3FD' },
+  { name: '청록', value: '#0EA5A4' },
+  { name: '초록', value: '#55BB86' },
+  { name: '보라', value: '#7C5CE0' },
+  { name: '자홍', value: '#C05AB0' },
+  { name: '주황', value: '#F97316' },
+  { name: '회색', value: '#8B93A6' },
+] as const
+
+export const BASE_COLORS: string[] = PALETTE.map((c) => c.value)
+export const COLOR_PRESETS = PALETTE
 
 export const DEFAULT_COLOR = BASE_COLORS[0]
 export const DEFAULT_BG = '#FFFFFF'
-
-export const COLOR_PRESETS = [
-  { name: '파랑', value: '#2F66F5' },
-  { name: '초록', value: '#55bb86' },
-  { name: '주황', value: '#f1a56d' },
-  { name: '하늘', value: '#4aa3c8' },
-  { name: '자홍', value: '#c05ab0' },
-]
 
 // Slice / series colors: the chosen color first, then the rest of the base palette.
 export const paletteFrom = (color: string) => [color, ...BASE_COLORS.filter((c) => c.toLowerCase() !== color.toLowerCase())]
