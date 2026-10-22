@@ -1,5 +1,11 @@
 import { useSyncExternalStore } from "react";
-import { createChartSpec, normalizeChart, type ChartSpec } from "./chart-spec";
+import {
+  autoTitle,
+  createChartSpec,
+  defaultLegend,
+  normalizeChart,
+  type ChartSpec,
+} from "./chart-spec";
 import type { Dataset } from "./csv";
 import { newId } from "./saved";
 
@@ -120,19 +126,23 @@ export function selectChart(type: string) {
   const { dataset, chart } = state;
   if (!dataset) return;
   if (chart?.type === type) return;
-  if (chart) return set({ chart: { ...chart, type } });
+  if (chart)
+    return set({ chart: { ...chart, type, legend: defaultLegend(type) } });
   set({ chart: createChartSpec(newId(), type, dataset) });
 }
 
 export function updateChart(spec: ChartSpec) {
   const { dataset, chart } = state;
   if (!chart) return;
-  // keep the auto title in sync with the value column until the user edits it
-  const followsColumn =
-    dataset && chart.title === dataset.headers[chart.valueCol];
+  // keep the auto title in sync with the chosen columns until the user edits it
+  const followsColumns =
+    dataset &&
+    chart.title === autoTitle(dataset, chart.labelCol, chart.valueCol);
+  const columnsChanged =
+    spec.valueCol !== chart.valueCol || spec.labelCol !== chart.labelCol;
   const title =
-    followsColumn && spec.valueCol !== chart.valueCol
-      ? (dataset.headers[spec.valueCol] ?? "")
+    dataset && followsColumns && columnsChanged
+      ? autoTitle(dataset, spec.labelCol, spec.valueCol)
       : spec.title;
   set({ chart: { ...spec, id: chart.id, title } });
 }

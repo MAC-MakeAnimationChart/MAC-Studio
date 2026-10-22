@@ -95,6 +95,27 @@ export async function exportPng(svg: SVGSVGElement, name: string, dpi: number) {
   download(new Blob([bytes as BlobPart], { type: 'image/png' }), `${name}.png`)
 }
 
+// Writes the DPI into the JPEG's JFIF header (units byte at 13, then X / Y density).
+function withJpegDpi(jpg: Uint8Array, dpi: number) {
+  const out = jpg.slice()
+  const isJfif = out[2] === 0xff && out[3] === 0xe0 && out[6] === 0x4a && out[7] === 0x46
+  if (!isJfif) return out
+  out[13] = 1 // dots per inch
+  out[14] = dpi >> 8
+  out[15] = dpi & 255
+  out[16] = dpi >> 8
+  out[17] = dpi & 255
+  return out
+}
+
+export async function exportJpg(svg: SVGSVGElement, name: string, dpi: number) {
+  const { canvas } = await renderCanvas(svg, dpi)
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.95))
+  if (!blob) throw new Error('이미지를 만들지 못했어요.')
+  const bytes = withJpegDpi(new Uint8Array(await blob.arrayBuffer()), dpi)
+  download(new Blob([bytes as BlobPart], { type: 'image/jpeg' }), `${name}.jpg`)
+}
+
 // Uncompressed little-endian RGB TIFF (no extra dependency needed).
 function encodeTiff(rgba: Uint8ClampedArray, w: number, h: number, dpi: number): Blob {
   const entries = 12
