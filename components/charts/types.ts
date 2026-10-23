@@ -8,8 +8,9 @@ export type ChartComponentProps = { spec: ChartSpec; data: ChartData }
 // Which options make sense for a chart. The options panel hides the ones a chart doesn't support.
 export type ChartSupports = {
   barWidth: boolean // bar thickness slider
+  sliceColors: boolean // each category can get its own color (pie)
   axes: boolean // axis label size / bold
-  topByValue: boolean // "N largest values" makes sense (false when row order matters, e.g. time series)
+  sortable: boolean // ordering rows (by value / name) makes sense (false when row order is the meaning, e.g. time series)
 }
 
 // One entry per chart type. To add a chart: write <name>-chart.tsx exporting a definition,

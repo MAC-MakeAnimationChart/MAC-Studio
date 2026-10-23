@@ -17,23 +17,18 @@ const steps = [
 
 const available = STUDIO_CATALOG.filter((c) => c.available).length;
 
-const eyebrow =
-  "font-mono text-[13px] tracking-[0.08em] text-[color:var(--c-text-2f66f5)]";
-
 export default function Home() {
   return (
     <main className="text-[color:var(--c-text-0c1b4c)]">
       <section className="mx-auto flex max-w-[1200px] flex-col items-center gap-6 px-8 pt-[88px] text-center">
-        <div className={eyebrow}>NO-CODE CHART STUDIO</div>
         <h1 className="text-[40px] font-light leading-[1.15] tracking-[-0.03em] sm:text-[60px]">
           데이터를 올리면,
           <br />
           차트가 완성돼요.
         </h1>
         <p className="max-w-[560px] text-[17px] leading-[1.75] text-[color:var(--c-text-4a5272)]">
-          코딩 없이 CSV나 엑셀 파일만 올리세요. 차트를 고르고 다듬어서 JPG,
-          PNG, TIFF로 바로 내려받을 수 있어요. 파일은 내 브라우저 안에서만
-          처리돼요.
+          코딩 없이 CSV나 엑셀 파일만 올리세요. 차트를 고르고 다듬어서 JPG, PNG,
+          TIFF로 바로 내려받을 수 있어요. 파일은 내 브라우저 안에서만 처리돼요.
         </p>
         <div className="flex flex-wrap justify-center gap-3">
           <Link
@@ -61,7 +56,6 @@ export default function Home() {
       >
         <div className="mx-auto flex max-w-[1200px] flex-col gap-10 px-8">
           <div className="flex flex-col gap-3">
-            <div className={eyebrow}>HOW IT WORKS</div>
             <h2 className="text-[38px] font-light tracking-[-0.02em]">
               5단계면 충분해요
             </h2>
@@ -97,7 +91,6 @@ export default function Home() {
         className="mx-auto flex max-w-[1200px] scroll-mt-16 flex-col gap-8 px-8 py-24"
       >
         <div className="flex flex-col gap-3">
-          <div className={eyebrow}>CHARTS</div>
           <h2 className="text-[38px] font-light tracking-[-0.02em]">
             지원하는 차트
           </h2>
@@ -141,7 +134,6 @@ export default function Home() {
       <section className="mx-auto max-w-[1200px] px-8 pb-24">
         <div className="grid gap-5 md:grid-cols-2">
           <div className="rounded-lg border border-[color:var(--c-border-e3e6f0)] bg-[color:var(--c-bg-ffffff)] p-7">
-            <div className={eyebrow}>FILES</div>
             <h3 className="mt-2 text-[20px] font-medium">파일 형식</h3>
             <dl className="mt-5 grid grid-cols-[88px_1fr] gap-y-3 text-[14px]">
               <dt className="text-[color:var(--c-text-6b7390)]">올리기</dt>
@@ -151,7 +143,6 @@ export default function Home() {
             </dl>
           </div>
           <div className="rounded-lg border border-[color:var(--c-border-e3e6f0)] bg-[color:var(--c-bg-ffffff)] p-7">
-            <div className={eyebrow}>PLAN</div>
             <h3 className="mt-2 text-[20px] font-medium">비회원 vs 회원</h3>
             <table className="mt-5 w-full text-left text-[14px]">
               <thead>
