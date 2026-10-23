@@ -12,8 +12,6 @@ export const metadata: Metadata = {
     "차트가 되는 표 모양, 예시, 샘플 파일, AI에 정리를 맡기는 프롬프트",
 };
 
-const eyebrow =
-  "font-mono text-[13px] tracking-[0.08em] text-[color:var(--c-text-2f66f5)]";
 const card =
   "rounded-lg border border-[color:var(--c-border-e5e8f0)] bg-[color:var(--c-bg-ffffff)]";
 
@@ -21,7 +19,6 @@ export default function GuidePage() {
   return (
     <main className="mx-auto max-w-[1000px] px-6 pb-24 pt-14 text-[color:var(--c-text-0c1b4c)] sm:px-10">
       <header className="flex flex-col gap-3">
-        <div className={eyebrow}>DATA GUIDE</div>
         <h1 className="text-[36px] font-light leading-[1.2] tracking-[-0.03em] sm:text-[44px]">
           차트가 되는 표, 이렇게 만들어요
         </h1>
@@ -42,7 +39,6 @@ export default function GuidePage() {
 
       <section className="mt-16 flex flex-col gap-6">
         <div>
-          <div className={eyebrow}>RULES</div>
           <h2 className="mt-2 text-[26px] font-light tracking-[-0.02em]">
             다섯 가지만 지켜 주세요
           </h2>
@@ -82,7 +78,6 @@ export default function GuidePage() {
 
       <section className="mt-16 flex flex-col gap-6">
         <div>
-          <div className={eyebrow}>COMMON PROBLEMS</div>
           <h2 className="mt-2 text-[26px] font-light tracking-[-0.02em]">
             자주 생기는 문제와 고치는 법
           </h2>
@@ -119,7 +114,6 @@ export default function GuidePage() {
 
       <section className="mt-16 flex flex-col gap-6">
         <div>
-          <div className={eyebrow}>BY CHART</div>
           <h2 className="mt-2 text-[26px] font-light tracking-[-0.02em]">
             차트마다 필요한 모양
           </h2>
@@ -162,7 +156,6 @@ export default function GuidePage() {
 
       <section className="mt-16 flex flex-col gap-6">
         <div>
-          <div className={eyebrow}>SAMPLES</div>
           <h2 className="mt-2 text-[26px] font-light tracking-[-0.02em]">
             샘플 파일 내려받기
           </h2>
@@ -175,7 +168,6 @@ export default function GuidePage() {
 
       <section className="mt-16 flex flex-col gap-6">
         <div>
-          <div className={eyebrow}>AI PROMPT</div>
           <h2 className="mt-2 text-[26px] font-light tracking-[-0.02em]">
             표 정리를 AI에게 맡기기
           </h2>

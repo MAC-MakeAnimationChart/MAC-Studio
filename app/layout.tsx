@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { AppToaster } from "@/components/app-toaster";
 import { AuthModalProvider } from "@/components/auth-modal";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { THEME_INIT_SCRIPT } from "@/lib/theme-script";
 import "./globals.css";
@@ -50,8 +51,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-full">
         <AuthModalProvider>
-          <SiteHeader />
-          {children}
+          <div className="flex min-h-dvh flex-col">
+            <SiteHeader />
+            <div className="flex-1">{children}</div>
+            <SiteFooter />
+          </div>
         </AuthModalProvider>
         <AppToaster />
       </body>
