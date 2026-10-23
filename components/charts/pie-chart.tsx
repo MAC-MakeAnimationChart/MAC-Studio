@@ -1,12 +1,13 @@
 import { PieChart as PieIcon } from 'lucide-react'
-import { inkFor, paletteFrom } from '@/lib/chart-palette'
+import { sliceColors } from '@/lib/chart-colors'
+import { inkFor } from '@/lib/chart-palette'
 import { ChartFrame, PLOT_H, SvgText, W, frameLayout } from './frame'
 import type { ChartComponentProps, ChartDefinition } from './types'
 
 export function PieChart({ spec, data }: ChartComponentProps) {
   const layout = frameLayout(spec, { legendRow: false, axisLabels: false })
   const ink = inkFor(spec.bg)
-  const colors = paletteFrom(spec.color)
+  const colors = sliceColors(spec, data.labels)
   const total = data.values.reduce((a, b) => a + Math.max(b, 0), 0) || 1
   const fracs = data.values.map((v) => Math.max(v, 0) / total)
   const starts = fracs.map((_, i) => fracs.slice(0, i).reduce((a, b) => a + b, 0))
@@ -21,7 +22,7 @@ export function PieChart({ spec, data }: ChartComponentProps) {
     const large = a1 - a0 > Math.PI ? 1 : 0
     const p = (a: number) => `${cx + r * Math.cos(a)} ${cy + r * Math.sin(a)}`
     const d = frac >= 0.9999 ? `M ${cx - r} ${cy} a ${r} ${r} 0 1 0 ${r * 2} 0 a ${r} ${r} 0 1 0 ${-r * 2} 0` : `M ${cx} ${cy} L ${p(a0)} A ${r} ${r} 0 ${large} 1 ${p(a1)} Z`
-    return { d, frac, color: colors[i % colors.length], label: data.labels[i] }
+    return { d, frac, color: colors[i], label: data.labels[i] }
   })
 
   const rowH = spec.legendSize + 10
@@ -53,6 +54,6 @@ export const pieChart: ChartDefinition = {
   desc: '전체에서 차지하는 비율',
   icon: PieIcon,
   tint: 'bg-[#FFF0E5]',
-  supports: { barWidth: false, axes: false, sortable: true },
+  supports: { barWidth: false, sliceColors: true, axes: false, sortable: true },
   Component: PieChart,
 }
