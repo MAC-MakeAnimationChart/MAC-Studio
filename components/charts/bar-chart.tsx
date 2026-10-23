@@ -31,6 +31,6 @@ export const barChart: ChartDefinition = {
   desc: '항목별 크기 비교',
   icon: BarChart3,
   tint: 'bg-[#E6EEFF]',
-  supports: { barWidth: true, axes: true, sortable: true },
+  supports: { barWidth: true, sliceColors: false, axes: true, sortable: true },
   Component: BarChart,
 }

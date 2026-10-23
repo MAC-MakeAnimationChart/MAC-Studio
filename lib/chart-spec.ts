@@ -54,6 +54,8 @@ export type ChartSpec = {
   xLabelDir: LabelDir // axis charts only
   margin: Margin
   font: string // id from lib/chart-fonts.ts
+  sliceColors: Record<string, string> // category label -> color, for charts that color each category (pie)
+  colorSeries: string // above 10 categories: 'mixed' or one palette hex shown dark to light
 }
 
 export const titleDefaults: TextStyle = {
@@ -112,6 +114,8 @@ export function createChartSpec(id: string, type: string, dataset: Dataset): Cha
     xLabelDir: 'horizontal',
     margin: { ...marginDefaults },
     font: DEFAULT_FONT,
+    sliceColors: {},
+    colorSeries: 'mixed',
   }
 }
 

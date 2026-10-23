@@ -8,6 +8,7 @@ export type ChartComponentProps = { spec: ChartSpec; data: ChartData }
 // Which options make sense for a chart. The options panel hides the ones a chart doesn't support.
 export type ChartSupports = {
   barWidth: boolean // bar thickness slider
+  sliceColors: boolean // each category can get its own color (pie)
   axes: boolean // axis label size / bold
   sortable: boolean // ordering rows (by value / name) makes sense (false when row order is the meaning, e.g. time series)
 }

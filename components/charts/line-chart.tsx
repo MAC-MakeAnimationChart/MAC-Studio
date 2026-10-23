@@ -30,6 +30,6 @@ export const lineChart: ChartDefinition = {
   icon: LineIcon,
   tint: 'bg-[#E6F3ED]',
   // a line's order is its meaning, so sorting is not offered
-  supports: { barWidth: false, axes: true, sortable: false },
+  supports: { barWidth: false, sliceColors: false, axes: true, sortable: false },
   Component: LineChart,
 }
