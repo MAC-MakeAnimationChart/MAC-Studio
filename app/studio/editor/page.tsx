@@ -32,7 +32,7 @@ import {
   useWorkspace,
 } from "@/lib/workspace";
 
-const AUTOSAVE_MS = 5 * 60 * 1000;
+const AUTOSAVE_MS = 60 * 1000;
 const SAVE_COOLDOWN_MS = 10 * 1000;
 
 const card =
@@ -170,7 +170,7 @@ export default function EditorPage() {
     onSave: () => performSave(false),
   });
 
-  // Members get an automatic save every 5 minutes, and one whenever the tab is hidden or closed,
+  // Members get an automatic save every minute, and one whenever the tab is hidden or closed,
   // since all the work lives in this browser tab.
   useEffect(() => {
     if (!user) return;
@@ -317,7 +317,7 @@ export default function EditorPage() {
               aria-live="polite"
             >
               {dirty
-                ? "저장되지 않은 변경 사항 · 5분마다 자동 저장"
+                ? "저장되지 않은 변경 사항 · 1분마다 자동 저장"
                 : savedAt
                   ? `${savedAt} 저장됨`
                   : "변경 사항 없음"}

@@ -4,7 +4,11 @@ import { ChartFrame, SeriesLegend, frameLayout } from './frame'
 import type { ChartComponentProps, ChartDefinition } from './types'
 
 export function LineChart({ spec, data }: ChartComponentProps) {
-  const layout = frameLayout(spec, { legendRow: spec.legend && !!data.seriesName, axisLabels: true })
+  const layout = frameLayout(spec, {
+    legendRow: spec.legend && !!data.seriesName,
+    axisLabels: true,
+    labels: data.labels,
+  })
   const g = cartesian(spec, data, layout)
 
   return (
@@ -25,7 +29,7 @@ export const lineChart: ChartDefinition = {
   desc: '시간에 따른 변화',
   icon: LineIcon,
   tint: 'bg-[#E6F3ED]',
-  // a line's order is its meaning, so "N largest values" is not offered
-  supports: { barWidth: false, axes: true, topByValue: false },
+  // a line's order is its meaning, so sorting is not offered
+  supports: { barWidth: false, axes: true, sortable: false },
   Component: LineChart,
 }

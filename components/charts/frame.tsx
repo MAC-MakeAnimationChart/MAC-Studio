@@ -1,18 +1,17 @@
 import type { ReactNode } from 'react'
 import { inkFor } from '@/lib/chart-palette'
+import { fontStack } from '@/lib/chart-fonts'
 import type { Align, ChartSpec } from '@/lib/chart-spec'
 
 // Shared by every chart: canvas size, the title / subtitle / footer, background and legend swatch.
 export const W = 640
 export const PLOT_H = 200
 const SIDE = 24
-// System fonts on purpose: exported PNG/TIFF/SVG can't carry the site's web font, so the preview
-// uses the same stack to match what gets downloaded.
-const FONT = "system-ui, 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif"
+// The chart's font comes from lib/chart-fonts.ts (system fonts), not the site's web font:
+// an exported image can't carry the web font, so the preview uses the same kind of stack.
 
 // Rough text width: CJK glyphs are about one em wide, Latin about half.
-export const textWidth = (text: string, size: number) =>
-  [...text].reduce((w, ch) => w + (ch.charCodeAt(0) > 255 ? size : size * 0.55), 0)
+export const textWidth = (text: string, size: number) => [...text].reduce((w, ch) => w + (ch.charCodeAt(0) > 255 ? size : size * 0.55), 0)
 
 export type Layout = {
   H: number
@@ -24,10 +23,26 @@ export type Layout = {
   footerY: number | null
 }
 
-type LayoutOptions = { legendRow: boolean; axisLabels: boolean }
+// `labels` are the x-axis labels; rotated labels need room below the plot as tall as they are long.
+type LayoutOptions = {
+  legendRow: boolean
+  axisLabels: boolean
+  labels?: string[]
+}
+
+export const MAX_ROTATED_LABEL = 110
+const DIAGONAL = Math.SQRT1_2
+
+// Height under the plot that the (possibly rotated) x labels take.
+export function axisLabelHeight(spec: ChartSpec, labels: string[] = []) {
+  const widest = Math.min(MAX_ROTATED_LABEL, Math.max(0, ...labels.map((l) => textWidth(l, spec.textSize))))
+  if (spec.xLabelDir === 'vertical') return widest + 12
+  if (spec.xLabelDir === 'diagonal') return widest * DIAGONAL + spec.textSize * DIAGONAL + 12
+  return spec.textSize + 14
+}
 
 // Heights grow with the text, so the plot area stays the same size whatever the user adds.
-export function frameLayout(spec: ChartSpec, { legendRow, axisLabels }: LayoutOptions): Layout {
+export function frameLayout(spec: ChartSpec, { legendRow, axisLabels, labels }: LayoutOptions): Layout {
   let y = 18
   let titleY: number | null = null
   let subtitleY: number | null = null
@@ -50,13 +65,21 @@ export function frameLayout(spec: ChartSpec, { legendRow, axisLabels }: LayoutOp
   }
   const plotTop = y
   const plotBottom = plotTop + PLOT_H
-  y = plotBottom + (axisLabels ? spec.textSize + 14 : 14)
+  y = plotBottom + (axisLabels ? axisLabelHeight(spec, labels) : 14)
   let footerY: number | null = null
   if (spec.footer) {
     footerY = y + 14
     y += 30
   }
-  return { H: Math.round(y + 6), titleY, subtitleY, legendY, plotTop, plotBottom, footerY }
+  return {
+    H: Math.round(y + 6),
+    titleY,
+    subtitleY,
+    legendY,
+    plotTop,
+    plotBottom,
+    footerY,
+  }
 }
 
 const anchorX = (align: Align) => (align === 'left' ? SIDE : align === 'right' ? W - SIDE : W / 2)
@@ -70,42 +93,64 @@ type SvgTextProps = {
   fill: string
   anchor?: 'start' | 'middle' | 'end'
   maxWidth?: number
+  rotate?: number // degrees, turned around (x, y)
   children: string
 }
 
 // Text that squeezes itself to fit instead of running off the chart.
-export function SvgText({ x, y, size, bold, fill, anchor: textAnchor = 'start', maxWidth = W - SIDE * 2, children }: SvgTextProps) {
+export function SvgText({ x, y, size, bold, fill, anchor: textAnchor = 'start', maxWidth = W - SIDE * 2, rotate, children }: SvgTextProps) {
   const tooWide = textWidth(children, size) > maxWidth
   return (
-    <text x={x} y={y} fontSize={size} fontWeight={bold ? 700 : 400} fill={fill} textAnchor={textAnchor} textLength={tooWide ? maxWidth : undefined} lengthAdjust={tooWide ? 'spacingAndGlyphs' : undefined}>
+    <text
+      x={x}
+      y={y}
+      transform={rotate ? `rotate(${rotate} ${x} ${y})` : undefined}
+      fontSize={size}
+      fontWeight={bold ? 700 : 400}
+      fill={fill}
+      textAnchor={textAnchor}
+      textLength={tooWide ? maxWidth : undefined}
+      lengthAdjust={tooWide ? 'spacingAndGlyphs' : undefined}
+    >
       {children}
     </text>
   )
 }
 
-type FrameProps = { spec: ChartSpec; layout: Layout; ariaLabel: string; children: ReactNode }
+type FrameProps = {
+  spec: ChartSpec
+  layout: Layout
+  ariaLabel: string
+  children: ReactNode
+}
 
 export function ChartFrame({ spec, layout, ariaLabel, children }: FrameProps) {
   const ink = inkFor(spec.bg)
+  // The margin grows the canvas; the chart itself keeps its size and is shifted inside it.
+  const { top, right, bottom, left } = spec.margin
+  const totalW = W + left + right
+  const totalH = layout.H + top + bottom
   return (
-    <svg viewBox={`0 0 ${W} ${layout.H}`} className="block h-auto w-full" role="img" aria-label={ariaLabel} fontFamily={FONT}>
-      <rect width={W} height={layout.H} fill={spec.bg} />
-      {spec.title && layout.titleY !== null && (
-        <SvgText x={anchorX(spec.titleStyle.align)} y={layout.titleY} size={spec.titleStyle.size} bold={spec.titleStyle.bold} fill={ink.text} anchor={anchor(spec.titleStyle.align)}>
-          {spec.title}
-        </SvgText>
-      )}
-      {spec.subtitle && layout.subtitleY !== null && (
-        <SvgText x={anchorX(spec.subtitleStyle.align)} y={layout.subtitleY} size={spec.subtitleStyle.size} bold={spec.subtitleStyle.bold} fill={ink.muted} anchor={anchor(spec.subtitleStyle.align)}>
-          {spec.subtitle}
-        </SvgText>
-      )}
-      {children}
-      {spec.footer && layout.footerY !== null && (
-        <SvgText x={SIDE} y={layout.footerY} size={11} fill={ink.muted}>
-          {spec.footer}
-        </SvgText>
-      )}
+    <svg viewBox={`0 0 ${totalW} ${totalH}`} className="block h-auto w-full" role="img" aria-label={ariaLabel} fontFamily={fontStack(spec.font)}>
+      <rect width={totalW} height={totalH} fill={spec.bg} />
+      <g transform={left || top ? `translate(${left} ${top})` : undefined}>
+        {spec.title && layout.titleY !== null && (
+          <SvgText x={anchorX(spec.titleStyle.align)} y={layout.titleY} size={spec.titleStyle.size} bold={spec.titleStyle.bold} fill={ink.text} anchor={anchor(spec.titleStyle.align)}>
+            {spec.title}
+          </SvgText>
+        )}
+        {spec.subtitle && layout.subtitleY !== null && (
+          <SvgText x={anchorX(spec.subtitleStyle.align)} y={layout.subtitleY} size={spec.subtitleStyle.size} bold={spec.subtitleStyle.bold} fill={ink.muted} anchor={anchor(spec.subtitleStyle.align)}>
+            {spec.subtitle}
+          </SvgText>
+        )}
+        {children}
+        {spec.footer && layout.footerY !== null && (
+          <SvgText x={SIDE} y={layout.footerY} size={11} fill={ink.muted}>
+            {spec.footer}
+          </SvgText>
+        )}
+      </g>
     </svg>
   )
 }

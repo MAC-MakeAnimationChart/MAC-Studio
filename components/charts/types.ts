@@ -9,7 +9,7 @@ export type ChartComponentProps = { spec: ChartSpec; data: ChartData }
 export type ChartSupports = {
   barWidth: boolean // bar thickness slider
   axes: boolean // axis label size / bold
-  topByValue: boolean // "N largest values" makes sense (false when row order matters, e.g. time series)
+  sortable: boolean // ordering rows (by value / name) makes sense (false when row order is the meaning, e.g. time series)
 }
 
 // One entry per chart type. To add a chart: write <name>-chart.tsx exporting a definition,
