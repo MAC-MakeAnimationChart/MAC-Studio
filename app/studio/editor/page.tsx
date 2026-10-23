@@ -237,9 +237,11 @@ export default function EditorPage() {
   };
 
   return (
-    <main className="px-3 pb-16 pt-6 text-[color:var(--c-text-0c1b4c)] sm:px-4">
+    // On wide screens the editor is exactly one screen tall (below the 68px header): the chart
+    // fills the left, and only the options panel on the right scrolls.
+    <main className="flex flex-col px-3 pb-16 pt-6 text-[color:var(--c-text-0c1b4c)] sm:px-4 lg:h-[calc(100dvh-69px)] lg:overflow-hidden lg:pb-3 lg:pt-4">
       {leaveDialog}
-      <div className="mb-5 grid items-center gap-3 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+      <div className="mb-3 grid shrink-0 items-center gap-3 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
         <div className="flex min-w-0 items-center gap-3">
           <Link
             href={origin === "mypage" ? "/mypage" : "/studio"}
@@ -363,9 +365,11 @@ export default function EditorPage() {
 
       {tab === "chart" && (
         <div
-          className={`grid items-start gap-4 ${panelOpen ? "lg:grid-cols-[minmax(0,1fr)_clamp(240px,17vw,300px)]" : ""}`}
+          className={`grid items-start gap-4 lg:min-h-0 lg:flex-1 lg:items-stretch ${panelOpen ? "lg:grid-cols-[minmax(0,1fr)_clamp(240px,17vw,300px)]" : "lg:grid-cols-[minmax(0,1fr)]"}`}
         >
-          <div className={`${card} relative p-3`}>
+          <div
+            className={`${card} relative p-3 lg:flex lg:min-h-0 lg:flex-col`}
+          >
             <button
               onClick={() => setPanelOpen((o) => !o)}
               className="absolute right-4 top-4 z-10 hidden rounded-lg border border-[color:var(--c-border-e4e7ee)] bg-[color:var(--c-bg-ffffff)]/90 px-2.5 py-1.5 text-[11px] font-bold text-[color:var(--c-text-667087)] hover:bg-[color:var(--c-bg-ffffff)] lg:block"
@@ -374,29 +378,33 @@ export default function EditorPage() {
             </button>
             <div
               ref={box}
-              className="overflow-hidden rounded-lg border border-[color:var(--c-border-edf0f5)]"
+              className="overflow-hidden rounded-lg border border-[color:var(--c-border-edf0f5)] lg:flex lg:min-h-0 lg:flex-1 lg:items-center lg:justify-center lg:border-transparent lg:[&_svg]:h-full lg:[&_svg]:w-full"
             >
               <ChartView dataset={dataset} spec={chart} />
             </div>
           </div>
 
           <aside
-            className={`${card} flex-col p-4 lg:sticky lg:top-20 lg:max-h-[calc(100vh-100px)] lg:overflow-y-auto ${panelOpen ? "flex" : "flex lg:hidden"}`}
+            className={`${card} flex-col p-4 lg:min-h-0 lg:overflow-hidden ${panelOpen ? "flex" : "flex lg:hidden"}`}
             aria-label="차트 옵션"
           >
-            <h2 className="mb-3 text-[14px] font-bold">차트 옵션</h2>
-            <ChartOptionsPanel
-              spec={chart}
-              dataset={dataset}
-              def={def}
-              onChange={updateChart}
-            />
+            <h2 className="mb-3 shrink-0 text-[14px] font-bold">차트 옵션</h2>
+            <div className="lg:-mr-2 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-2">
+              <ChartOptionsPanel
+                spec={chart}
+                dataset={dataset}
+                def={def}
+                onChange={updateChart}
+              />
+            </div>
           </aside>
         </div>
       )}
 
       {tab === "data" && (
-        <div className={`${card} p-4 sm:p-6`}>
+        <div
+          className={`${card} p-4 sm:p-6 lg:min-h-0 lg:flex-1 lg:overflow-auto`}
+        >
           <DataGrid
             dataset={dataset}
             spec={chart}

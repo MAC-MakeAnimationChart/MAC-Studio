@@ -52,7 +52,7 @@ export function autoTitle(dataset: Dataset, labelCol: number, valueCol: number) 
 }
 
 // A single series needs no legend (the title says what it is); pies list their slices.
-export const defaultLegend = (type: string) => type === 'pie'
+export const defaultLegend = (type: string) => type === '원형 차트'
 
 export function createChartSpec(id: string, type: string, dataset: Dataset): ChartSpec {
   const valueCol = numericColumns(dataset)[0] ?? 1
