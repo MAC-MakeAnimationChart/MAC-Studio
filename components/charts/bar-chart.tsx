@@ -5,7 +5,11 @@ import { ChartFrame, SeriesLegend, frameLayout } from './frame'
 import type { ChartComponentProps, ChartDefinition } from './types'
 
 export function BarChart({ spec, data }: ChartComponentProps) {
-  const layout = frameLayout(spec, { legendRow: spec.legend && !!data.seriesName, axisLabels: true })
+  const layout = frameLayout(spec, {
+    legendRow: spec.legend && !!data.seriesName,
+    axisLabels: true,
+    labels: data.labels,
+  })
   const g = cartesian(spec, data, layout)
   const bar = g.step * (spec.barWidth / 100)
   const fill = shade(spec.color, spec.barShade)
@@ -27,6 +31,6 @@ export const barChart: ChartDefinition = {
   desc: '항목별 크기 비교',
   icon: BarChart3,
   tint: 'bg-[#E6EEFF]',
-  supports: { barWidth: true, axes: true, topByValue: true },
+  supports: { barWidth: true, axes: true, sortable: true },
   Component: BarChart,
 }

@@ -32,6 +32,18 @@ import {
   useWorkspace,
 } from "@/lib/workspace";
 
+// Extensions alone make Android (Galaxy) show the camera / photo shortcuts first. Listing the
+// MIME types too tells the system picker these are documents, so it opens the file browser.
+const UPLOAD_ACCEPT = [
+  ".csv",
+  ".xlsx",
+  "text/csv",
+  "text/comma-separated-values",
+  "application/csv",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+].join(",");
+
 const card =
   "rounded-lg border border-[color:var(--c-border-e5e8f0)] bg-[color:var(--c-bg-ffffff)] shadow-[0_8px_30px_rgba(37,52,89,0.03)]";
 const primaryBtn =
@@ -168,7 +180,7 @@ export default function StudioPage() {
           <input
             ref={fileRef}
             type="file"
-            accept=".csv,.xlsx"
+            accept={UPLOAD_ACCEPT}
             className="hidden"
             onChange={(e) => {
               handleFile(e.target.files?.[0]);

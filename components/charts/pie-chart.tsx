@@ -20,10 +20,7 @@ export function PieChart({ spec, data }: ChartComponentProps) {
     const a1 = a0 + frac * Math.PI * 2
     const large = a1 - a0 > Math.PI ? 1 : 0
     const p = (a: number) => `${cx + r * Math.cos(a)} ${cy + r * Math.sin(a)}`
-    const d =
-      frac >= 0.9999
-        ? `M ${cx - r} ${cy} a ${r} ${r} 0 1 0 ${r * 2} 0 a ${r} ${r} 0 1 0 ${-r * 2} 0`
-        : `M ${cx} ${cy} L ${p(a0)} A ${r} ${r} 0 ${large} 1 ${p(a1)} Z`
+    const d = frac >= 0.9999 ? `M ${cx - r} ${cy} a ${r} ${r} 0 1 0 ${r * 2} 0 a ${r} ${r} 0 1 0 ${-r * 2} 0` : `M ${cx} ${cy} L ${p(a0)} A ${r} ${r} 0 ${large} 1 ${p(a1)} Z`
     return { d, frac, color: colors[i % colors.length], label: data.labels[i] }
   })
 
@@ -56,6 +53,6 @@ export const pieChart: ChartDefinition = {
   desc: '전체에서 차지하는 비율',
   icon: PieIcon,
   tint: 'bg-[#FFF0E5]',
-  supports: { barWidth: false, axes: false, topByValue: true },
+  supports: { barWidth: false, axes: false, sortable: true },
   Component: PieChart,
 }

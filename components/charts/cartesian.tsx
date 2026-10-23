@@ -1,7 +1,7 @@
 import type { ChartData } from '@/lib/chart-data'
 import { inkFor } from '@/lib/chart-palette'
 import type { ChartSpec } from '@/lib/chart-spec'
-import { PLOT_H, SvgText, W, textWidth, type Layout } from './frame'
+import { MAX_ROTATED_LABEL, PLOT_H, SvgText, W, textWidth, type Layout } from './frame'
 
 // Axes shared by the charts that plot values against categories (bar, line, ...).
 // Like d3's scale.nice(): about 4 intervals with a round step (1, 2, 2.5, 5 x 10^n), and the top
@@ -25,7 +25,12 @@ export function cartesian(spec: ChartSpec, data: ChartData, layout: Layout) {
   const tickCount = Math.round(max / scale.step)
   const decimals = scale.step >= 1 ? (Number.isInteger(scale.step) ? 0 : 1) : Math.ceil(-Math.log10(scale.step))
   const ticks = Array.from({ length: tickCount + 1 }, (_, i) => Number((i * scale.step).toFixed(decimals)))
-  const tickLabels = ticks.map((t) => t.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals }))
+  const tickLabels = ticks.map((t) =>
+    t.toLocaleString(undefined, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    }),
+  )
   const left = 12 + Math.max(...tickLabels.map((l) => textWidth(l, spec.textSize))) + 8
   const right = 24
   const count = Math.max(data.labels.length, 1)
@@ -38,7 +43,8 @@ export function cartesian(spec: ChartSpec, data: ChartData, layout: Layout) {
     left,
     right,
     step,
-    labelStep: Math.max(1, Math.ceil((widest + 8) / step)),
+    // horizontal labels need their width; rotated ones only their line height
+    labelStep: Math.max(1, Math.ceil((spec.xLabelDir === 'horizontal' ? widest + 8 : spec.textSize * (spec.xLabelDir === 'vertical' ? 1.3 : 1.7)) / step)),
     x: (i: number) => left + step * i + step / 2,
     y: (v: number) => layout.plotBottom - (Math.max(v, 0) / max) * PLOT_H,
   }
@@ -58,13 +64,32 @@ export function Axes({ spec, data, layout, g }: { spec: ChartSpec; data: ChartDa
           </SvgText>
         </g>
       ))}
-      {data.labels.map((label, i) =>
-        i % g.labelStep === 0 ? (
-          <SvgText key={i} x={g.x(i)} y={layout.plotBottom + spec.textSize + 6} size={spec.textSize} bold={spec.textBold} fill={ink.muted} anchor="middle" maxWidth={g.step * g.labelStep}>
+      {data.labels.map((label, i) => {
+        if (i % g.labelStep !== 0) return null
+        if (spec.xLabelDir === 'horizontal')
+          return (
+            <SvgText key={i} x={g.x(i)} y={layout.plotBottom + spec.textSize + 6} size={spec.textSize} bold={spec.textBold} fill={ink.muted} anchor="middle" maxWidth={g.step * g.labelStep}>
+              {label}
+            </SvgText>
+          )
+        // rotated: the end of the text sits just under its tick and the text runs down-left
+        const vertical = spec.xLabelDir === 'vertical'
+        return (
+          <SvgText
+            key={i}
+            x={g.x(i) + spec.textSize * (vertical ? 0.35 : 0.3)}
+            y={layout.plotBottom + 8}
+            size={spec.textSize}
+            bold={spec.textBold}
+            fill={ink.muted}
+            anchor="end"
+            maxWidth={MAX_ROTATED_LABEL}
+            rotate={vertical ? -90 : -45}
+          >
             {label}
           </SvgText>
-        ) : null,
-      )}
+        )
+      })}
     </g>
   )
 }
