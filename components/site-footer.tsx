@@ -10,6 +10,7 @@ const link =
 export function SiteFooter() {
   const pathname = usePathname();
   // The editor and loading screens are exactly one screen tall on desktop, so no footer there.
+  if (pathname.startsWith("/auth/")) return null;
   const fullScreen =
     pathname === "/studio/editor" || pathname === "/studio/loading";
 
