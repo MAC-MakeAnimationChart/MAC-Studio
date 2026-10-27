@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AdSlot } from "@/components/ad-slot";
+import { SocialButtons } from "@/components/social-buttons";
 import { login } from "@/lib/auth";
 import {
   CODE_LENGTH,
@@ -37,6 +38,7 @@ export function AuthForm({ mode, embedded = false, onDone, onSwitch }: Props) {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
+  const [agreed, setAgreed] = useState(false); // sign-up only: terms and privacy policy
 
   // sign-up step 2: the emailed code
   const [step, setStep] = useState<"form" | "code">("form");
@@ -57,10 +59,13 @@ export function AuthForm({ mode, embedded = false, onDone, onSwitch }: Props) {
     return () => clearInterval(timer);
   }, [step, sentAt]);
 
-  const finish = () => {
-    login(normalized);
-    if (embedded) onDone?.(signup);
-    else router.push(signup ? "/studio" : "/mypage");
+  // `socialNew` is set for a social login: true if it created the account. The email flow decides
+  // by the page it is on.
+  const finish = (socialNew?: boolean) => {
+    const created = socialNew ?? signup;
+    if (socialNew === undefined) login(normalized); // (social login already signed in)
+    if (embedded) onDone?.(created);
+    else router.push(created ? "/studio" : "/mypage");
   };
 
   const sendCode = async () => {
@@ -86,6 +91,8 @@ export function AuthForm({ mode, embedded = false, onDone, onSwitch }: Props) {
       return setError("비밀번호는 8자 이상이어야 해요.");
     if (signup && password !== confirm)
       return setError("비밀번호가 서로 달라요.");
+    if (signup && !agreed)
+      return setError("이용약관과 개인정보처리방침에 동의해 주세요.");
     if (!signup) return finish();
     sendCode();
   };
@@ -109,7 +116,8 @@ export function AuthForm({ mode, embedded = false, onDone, onSwitch }: Props) {
     const digits = raw.replace(/\D/g, "").slice(0, CODE_LENGTH);
     setCode(digits);
     setError("");
-    if (digits.length === CODE_LENGTH) check(digits); // verify as soon as it is complete
+    // Not checked automatically when complete: a typo would use up one of the limited tries.
+    // The code is checked only when the user presses the button (or Enter).
   };
 
   const switchText = signup ? "로그인" : "회원가입";
@@ -263,6 +271,38 @@ export function AuthForm({ mode, embedded = false, onDone, onSwitch }: Props) {
             className={input}
           />
         )}
+        {signup && (
+          <label className="flex items-start gap-2 text-[12px] leading-5 text-[color:var(--c-text-4a5272)]">
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={(e) => {
+                setAgreed(e.target.checked);
+                setError("");
+              }}
+              className="mt-0.5 size-4 shrink-0 accent-[#2F66F5]"
+            />
+            <span>
+              (필수){" "}
+              <Link
+                href="/terms"
+                target="_blank"
+                className="font-bold text-[color:var(--c-text-2f66f5)] hover:underline"
+              >
+                이용약관
+              </Link>
+              과{" "}
+              <Link
+                href="/privacy"
+                target="_blank"
+                className="font-bold text-[color:var(--c-text-2f66f5)] hover:underline"
+              >
+                개인정보처리방침
+              </Link>
+              에 동의해요
+            </span>
+          </label>
+        )}
         {error && (
           <p
             role="alert"
@@ -275,6 +315,12 @@ export function AuthForm({ mode, embedded = false, onDone, onSwitch }: Props) {
           {signup ? (busy ? "보내는 중…" : "인증코드 받기") : "로그인"}
         </button>
       </form>
+      <div className="my-5 flex items-center gap-3 text-[11px] text-[color:var(--c-text-99a1b1)]">
+        <span className="h-px flex-1 bg-[color:var(--c-bg-edf0f4)]" />
+        또는
+        <span className="h-px flex-1 bg-[color:var(--c-bg-edf0f4)]" />
+      </div>
+      <SocialButtons mode={mode} onSuccess={(isNew) => finish(isNew)} />
       <p className="mt-4 rounded-lg bg-[color:var(--c-bg-fafafc)] px-3 py-2.5 text-[11px] leading-5 text-[color:var(--c-text-8891a5)]">
         데모 안내: 아직 서버가 연결되지 않아 비밀번호는 저장·검증하지 않고,
         이메일만 이 브라우저에 보관해요. 저장한 데이터도 이 브라우저에만 남아요.

@@ -83,6 +83,9 @@ export function SiteHeader() {
   const outline =
     "rounded-lg border border-[color:var(--c-border-b9bfd3)] px-4 py-2 text-[14px] font-medium text-[color:var(--c-text-0c1b4c)] hover:bg-[color:var(--c-bg-fafafc)]";
 
+  // the social sign-in popup is a small window of its own: no site chrome
+  if (pathname.startsWith("/auth/")) return null;
+
   return (
     <>
       {pathname === "/" && (

@@ -4,7 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FolderOpen, Plus, Search, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { ChartView } from "@/components/charts/chart-view";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useUser } from "@/lib/auth";
 import { loadDataset, openWorkspace } from "@/lib/workspace";
 import {
@@ -25,6 +27,12 @@ export default function MyPage() {
   const router = useRouter();
   const [pickedId, setPickedId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  // the delete the user has asked for but not yet confirmed
+  const [pending, setPending] = useState<
+    | { kind: "folder"; folderId: string }
+    | { kind: "chart"; folderId: string; chartId: string }
+    | null
+  >(null);
 
   if (!user) {
     return (
@@ -67,13 +75,8 @@ export default function MyPage() {
   };
 
   const removeFolder = (s: SavedDataset) => {
-    if (
-      !window.confirm(
-        `"${s.name}" 폴더와 안의 차트를 모두 삭제할까요? 되돌릴 수 없어요.`,
-      )
-    )
-      return;
     write(saved.filter((x) => x.id !== s.id));
+    toast.success("데이터셋을 삭제했어요", { id: "mypage-delete" });
   };
 
   const removeChart = (s: SavedDataset, chartId: string) => {
@@ -84,7 +87,18 @@ export default function MyPage() {
           : x,
       ),
     );
+    toast.success("차트를 삭제했어요", { id: "mypage-delete" });
   };
+
+  // what the open question is about (it may be gone if the list changed meanwhile)
+  const pendingFolder = pending
+    ? saved.find((x) => x.id === pending.folderId)
+    : undefined;
+  const pendingChart =
+    pending?.kind === "chart"
+      ? pendingFolder?.charts.find((c) => c.id === pending.chartId)
+      : undefined;
+  const closeConfirm = () => setPending(null);
 
   const used = sizeOf(saved);
   const usedMb = (used / 1024 / 1024).toFixed(used < 1024 * 1024 ? 2 : 1);
@@ -236,7 +250,9 @@ export default function MyPage() {
                     <Plus size={14} /> 새 차트 만들기
                   </button>
                   <button
-                    onClick={() => removeFolder(current)}
+                    onClick={() =>
+                      setPending({ kind: "folder", folderId: current.id })
+                    }
                     className="rounded-lg p-2 text-[color:var(--c-text-9da5b5)] hover:bg-[color:var(--c-bg-f5f6fa)]"
                     aria-label="폴더 삭제"
                   >
@@ -280,7 +296,13 @@ export default function MyPage() {
                             편집
                           </button>
                           <button
-                            onClick={() => removeChart(current, c.id)}
+                            onClick={() =>
+                              setPending({
+                                kind: "chart",
+                                folderId: current.id,
+                                chartId: c.id,
+                              })
+                            }
                             className="rounded-md p-1.5 text-[color:var(--c-text-9da5b5)] hover:bg-[color:var(--c-bg-f5f6fa)]"
                             aria-label="차트 삭제"
                           >
@@ -301,6 +323,41 @@ export default function MyPage() {
             </div>
           )}
         </div>
+      )}
+
+      {pending?.kind === "folder" && pendingFolder && (
+        <ConfirmDialog
+          title="데이터셋을 삭제할까요?"
+          confirmLabel="삭제"
+          danger
+          onCancel={closeConfirm}
+          onConfirm={() => {
+            removeFolder(pendingFolder);
+            closeConfirm();
+          }}
+        >
+          <b className="break-all">&ldquo;{pendingFolder.name}&rdquo;</b> 폴더와
+          안에 저장된 차트 {pendingFolder.charts.length}개가 모두 삭제돼요.
+          삭제하면 되돌릴 수 없어요.
+        </ConfirmDialog>
+      )}
+      {pending?.kind === "chart" && pendingFolder && pendingChart && (
+        <ConfirmDialog
+          title="차트를 삭제할까요?"
+          confirmLabel="삭제"
+          danger
+          onCancel={closeConfirm}
+          onConfirm={() => {
+            removeChart(pendingFolder, pendingChart.id);
+            closeConfirm();
+          }}
+        >
+          <b className="break-all">
+            &ldquo;{pendingChart.title || pendingChart.type}&rdquo;
+          </b>{" "}
+          차트가 삭제돼요. 데이터셋은 그대로 남고, 삭제한 차트는 되돌릴 수
+          없어요.
+        </ConfirmDialog>
       )}
     </section>
   );
