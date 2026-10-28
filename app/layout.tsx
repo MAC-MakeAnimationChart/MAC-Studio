@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { AppToaster } from "@/components/app-toaster";
 import { AuthModalProvider } from "@/components/auth-modal";
 import { SiteFooter } from "@/components/site-footer";
+import { StorageCleanup } from "@/components/storage-cleanup";
 import { SiteHeader } from "@/components/site-header";
 import { THEME_INIT_SCRIPT } from "@/lib/theme-script";
 import "./globals.css";
@@ -58,6 +59,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </div>
         </AuthModalProvider>
         <AppToaster />
+        <StorageCleanup />
       </body>
     </html>
   );

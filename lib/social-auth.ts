@@ -1,4 +1,5 @@
 import type { AuthUser, Provider } from "./auth-api";
+import { SOCIAL_PENDING_PREFIX } from "./storage-keys";
 
 // Browser side of "log in with Kakao / Google / Naver" (OAuth 2.0 authorization code + PKCE).
 //
@@ -44,7 +45,7 @@ export type Pending = {
 };
 
 const PENDING_TTL_MS = 10 * 60 * 1000;
-const pendingKey = (state: string) => `mac-studio:social:${state}`;
+const pendingKey = (state: string) => `${SOCIAL_PENDING_PREFIX}${state}`;
 
 // localStorage (not sessionStorage) so the popup, a separate window, can read what this window saved.
 function savePending(p: Pending) {
