@@ -1,79 +1,48 @@
 import type { Dataset } from "./csv";
 
-// Example data for every Studio chart, one entry per chart, keyed by the chart's Korean name
-// (the same name as lib/chart-catalog.ts and ChartDefinition.type).
+// Example data for the Studio charts, used for the chart previews (hover on the home page and in
+// /studio) and meant to be reused wherever an example is needed (docs, guide).
 //
-// This is the ONE place to change the example data. It feeds the chart previews (hover on the home
-// page and in /studio) and is meant to be reused wherever an example is needed (docs, guide).
-// Change numbers, rows or columns freely; nothing else needs to change.
+// Two parts, so one table can serve several charts and there is less to maintain:
+//   SAMPLE_TABLES  the example tables, each with a name
+//   SAMPLE_OF      which table each chart uses (chart name -> table name)
+// To change the example numbers, edit a table. To give a chart its own table, add one to
+// SAMPLE_TABLES and point SAMPLE_OF at it. Every chart in lib/chart-catalog.ts must appear in SAMPLE_OF.
 //
-// Each entry is a small table: `headers` and `rows`. Rows can hold numbers, they are turned into text
-// like an uploaded file would be. `shape` says in words what the chart expects, so that whoever
-// builds the chart can check the table fits. If a chart needs a different table than the one here,
-// edit the entry (and `CHART_NEEDS` in lib/data-guide.ts, which describes the same thing for users).
-export type SampleData = {
-  shape: string;
+// Charts that share a table each pick the columns they need from it (for example a histogram uses
+// the first number column, a scatter plot the first two).
+export type SampleTable = {
+  about: string; // what the table is, and the table shape it is an example of
   headers: string[];
   rows: (string | number)[][];
 };
 
-// ---- shared example tables ------------------------------------------------------------------
-
 const MONTHS = ["1월", "2월", "3월", "4월", "5월", "6월"];
-const monthly = (values: number[]) =>
-  values.map((v, i) => [MONTHS[i], v] as (string | number)[]);
 
-const SALES_SHARE: SampleData["rows"] = [
-  ["검색", 45],
-  ["광고", 25],
-  ["추천", 18],
-  ["직접", 12],
-];
-
-const LONG_GROUPS: SampleData["rows"] = [
-  ["A반", 62],
-  ["A반", 71],
-  ["A반", 75],
-  ["A반", 78],
-  ["A반", 82],
-  ["A반", 85],
-  ["A반", 91],
-  ["B반", 55],
-  ["B반", 60],
-  ["B반", 68],
-  ["B반", 70],
-  ["B반", 73],
-  ["B반", 79],
-  ["B반", 88],
-  ["C반", 48],
-  ["C반", 58],
-  ["C반", 64],
-  ["C반", 69],
-  ["C반", 74],
-  ["C반", 80],
-  ["C반", 95],
-];
-
-export const SAMPLE_DATA: Record<string, SampleData> = {
-  // ---- bar family ----
-  "막대 차트": {
-    shape: "항목 이름 열 1개 + 숫자 열 1개",
+export const SAMPLE_TABLES = {
+  // item name + one number column, in time order
+  monthlyVisitors: {
+    about:
+      "월별 방문자. 항목 이름 열 1개 + 숫자 열 1개 (시간 순서, 오래된 것부터)",
     headers: ["월", "방문자(명)"],
-    rows: monthly([1200, 1850, 1500, 2300, 2100, 2900]),
+    rows: MONTHS.map((m, i) => [m, [1200, 1850, 1500, 2300, 2100, 2900][i]]),
   },
-  "그룹 막대 차트": {
-    shape:
-      "항목 이름 열 1개 + 숫자 열 여러 개 (숫자 열 하나가 막대 한 묶음 안의 막대 하나)",
-    headers: ["분기", "A제품(만원)", "B제품(만원)", "C제품(만원)"],
+  // item name + one number column, parts of a whole
+  trafficShare: {
+    about:
+      "유입 경로 비율. 항목 이름 열 1개 + 숫자 열 1개 (항목 10개 이내, 음수 없음)",
+    headers: ["유입 경로", "비율(%)"],
     rows: [
-      ["1분기", 420, 310, 180],
-      ["2분기", 510, 340, 220],
-      ["3분기", 480, 390, 260],
-      ["4분기", 630, 420, 310],
+      ["검색", 45],
+      ["광고", 25],
+      ["추천", 18],
+      ["직접", 12],
     ],
   },
-  "누적 막대 차트": {
-    shape: "항목 이름 열 1개 + 숫자 열 여러 개 (숫자 열이 한 막대 안에 쌓임)",
+  // item name + several number columns
+  monthlyChannels: {
+    about:
+      "월별 채널별 방문자. 항목 이름 열 1개 + 숫자 열 여러 개 (열 하나가 한 계열)",
     headers: ["월", "검색(명)", "광고(명)", "추천(명)"],
     rows: [
       ["1월", 600, 350, 250],
@@ -84,93 +53,38 @@ export const SAMPLE_DATA: Record<string, SampleData> = {
       ["6월", 1300, 950, 650],
     ],
   },
-  "100% 누적 막대 차트": {
-    shape: "항목 이름 열 1개 + 숫자 열 여러 개 (각 막대가 합계 100%로 늘어남)",
-    headers: ["부서", "매우 만족", "만족", "보통", "불만족"],
+  // a group name + one value per row (many rows share a group name)
+  classScores: {
+    about:
+      "반별 시험 점수. 그룹 이름 열 1개 + 숫자 열 1개 (한 줄이 한 값, 같은 그룹 이름이 여러 줄)",
+    headers: ["반", "점수"],
     rows: [
-      ["영업", 12, 38, 35, 15],
-      ["개발", 20, 45, 25, 10],
-      ["디자인", 28, 40, 22, 10],
-      ["지원", 8, 30, 40, 22],
+      ["A반", 62],
+      ["A반", 71],
+      ["A반", 75],
+      ["A반", 78],
+      ["A반", 82],
+      ["A반", 85],
+      ["A반", 91],
+      ["B반", 55],
+      ["B반", 60],
+      ["B반", 68],
+      ["B반", 70],
+      ["B반", 73],
+      ["B반", 79],
+      ["B반", 88],
+      ["C반", 48],
+      ["C반", 58],
+      ["C반", 64],
+      ["C반", 69],
+      ["C반", 74],
+      ["C반", 80],
+      ["C반", 95],
     ],
   },
-  "오차 막대 차트": {
-    shape: "항목 이름 열 1개 + 평균 열 1개 + 오차 열 1개",
-    headers: ["실험군", "평균(점)", "오차(±)"],
-    rows: [
-      ["대조군", 52, 4.5],
-      ["실험군 A", 61, 5.2],
-      ["실험군 B", 68, 3.8],
-      ["실험군 C", 74, 6.1],
-    ],
-  },
-  "폭포 차트": {
-    shape: "항목 이름 열 1개 + 증감 숫자 열 1개 (양수는 증가, 음수는 감소)",
-    headers: ["항목", "증감(만원)"],
-    rows: [
-      ["기초 잔액", 500],
-      ["매출", 320],
-      ["인건비", -180],
-      ["광고비", -90],
-      ["기타 수익", 60],
-      ["임대료", -70],
-    ],
-  },
-  "파레토 차트": {
-    shape: "항목 이름 열 1개 + 건수 열 1개 (큰 순서로 정렬)",
-    headers: ["불량 유형", "건수"],
-    rows: [
-      ["스크래치", 48],
-      ["찍힘", 30],
-      ["색 불균일", 18],
-      ["치수 불량", 10],
-      ["기타", 6],
-    ],
-  },
-
-  // ---- line / area family ----
-  "선 차트": {
-    shape: "시간 순서 열 1개 + 숫자 열 1개 (오래된 것부터)",
-    headers: ["월", "방문자(명)"],
-    rows: monthly([1200, 1850, 1500, 2300, 2100, 2900]),
-  },
-  "면적 차트": {
-    shape: "시간 순서 열 1개 + 숫자 열 1개 (오래된 것부터)",
-    headers: ["월", "매출(만원)"],
-    rows: monthly([320, 410, 380, 520, 560, 690]),
-  },
-  "누적 면적 차트": {
-    shape: "시간 순서 열 1개 + 숫자 열 여러 개 (숫자 열이 겹겹이 쌓임)",
-    headers: ["월", "모바일(명)", "데스크톱(명)", "태블릿(명)"],
-    rows: [
-      ["1월", 700, 400, 100],
-      ["2월", 1000, 650, 200],
-      ["3월", 900, 450, 150],
-      ["4월", 1300, 800, 200],
-      ["5월", 1200, 700, 200],
-      ["6월", 1700, 950, 250],
-    ],
-  },
-
-  // ---- pie / composition family ----
-  "원형 차트": {
-    shape: "항목 이름 열 1개 + 숫자 열 1개 (항목 10개 이내, 음수 없음)",
-    headers: ["유입 경로", "비율(%)"],
-    rows: SALES_SHARE,
-  },
-  "도넛 차트": {
-    shape: "항목 이름 열 1개 + 숫자 열 1개 (원형 차트와 같음)",
-    headers: ["예산 항목", "비율(%)"],
-    rows: [
-      ["인건비", 40],
-      ["마케팅", 25],
-      ["개발", 20],
-      ["운영", 10],
-      ["기타", 5],
-    ],
-  },
-  트리맵: {
-    shape: "상위 항목 열 + 하위 항목 열 + 크기 숫자 열",
+  // upper level + lower level + size
+  hierarchy: {
+    about: "분류별 매출. 상위 항목 열 + 하위 항목 열 + 크기 숫자 열",
     headers: ["분류", "항목", "매출(만원)"],
     rows: [
       ["전자", "스마트폰", 420],
@@ -182,121 +96,10 @@ export const SAMPLE_DATA: Record<string, SampleData> = {
       ["식품", "과자", 90],
     ],
   },
-  "선버스트 차트": {
-    shape: "상위 항목 열 + 하위 항목 열 + 크기 숫자 열 (트리맵과 같은 계층 표)",
-    headers: ["분류", "항목", "방문자(명)"],
-    rows: [
-      ["모바일", "iOS", 520],
-      ["모바일", "안드로이드", 780],
-      ["데스크톱", "윈도우", 640],
-      ["데스크톱", "맥", 260],
-      ["기타", "태블릿", 140],
-    ],
-  },
-
-  // ---- distribution family ----
-  히스토그램: {
-    shape: "숫자 열 1개 (한 줄이 한 값, 구간은 차트가 나눔)",
-    headers: ["시험 점수"],
-    rows: [
-      [48],
-      [52],
-      [55],
-      [58],
-      [60],
-      [61],
-      [63],
-      [64],
-      [66],
-      [67],
-      [68],
-      [70],
-      [71],
-      [72],
-      [73],
-      [74],
-      [75],
-      [76],
-      [77],
-      [78],
-      [79],
-      [80],
-      [82],
-      [83],
-      [85],
-      [86],
-      [88],
-      [90],
-      [93],
-      [97],
-    ],
-  },
-  "밀도 그래프": {
-    shape: "숫자 열 1개 (한 줄이 한 값)",
-    headers: ["키(cm)"],
-    rows: [
-      [155],
-      [158],
-      [160],
-      [161],
-      [163],
-      [164],
-      [165],
-      [166],
-      [167],
-      [168],
-      [168],
-      [169],
-      [170],
-      [171],
-      [172],
-      [173],
-      [174],
-      [175],
-      [176],
-      [178],
-      [179],
-      [180],
-      [182],
-      [185],
-    ],
-  },
-  "박스 플롯": {
-    shape:
-      "그룹 이름 열 1개 + 숫자 열 1개 (한 줄이 한 값, 같은 그룹 이름이 여러 줄)",
-    headers: ["반", "점수"],
-    rows: LONG_GROUPS,
-  },
-  "바이올린 플롯": {
-    shape: "그룹 이름 열 1개 + 숫자 열 1개 (박스 플롯과 같음)",
-    headers: ["반", "점수"],
-    rows: LONG_GROUPS,
-  },
-  "스트립 플롯": {
-    shape: "그룹 이름 열 1개 + 숫자 열 1개 (박스 플롯과 같음)",
-    headers: ["반", "점수"],
-    rows: LONG_GROUPS,
-  },
-
-  // ---- relation family ----
-  산점도: {
-    shape: "점 이름 열(선택) + 숫자 열 2개 (가로축 값, 세로축 값)",
-    headers: ["학생", "공부 시간(시간)", "점수(점)"],
-    rows: [
-      ["가", 1, 52],
-      ["나", 2, 58],
-      ["다", 2.5, 61],
-      ["라", 3, 66],
-      ["마", 4, 70],
-      ["바", 4.5, 74],
-      ["사", 5, 78],
-      ["아", 6, 82],
-      ["자", 7, 88],
-      ["차", 8, 93],
-    ],
-  },
-  "버블 차트": {
-    shape: "점 이름 열 + 숫자 열 3개 (가로축 값, 세로축 값, 버블 크기)",
+  // a point name + three number columns
+  scatterPoints: {
+    about:
+      "제품별 광고비·매출·고객 수. 점 이름 열 + 숫자 열 3개 (가로축 값, 세로축 값, 버블 크기)",
     headers: ["제품", "광고비(만원)", "매출(만원)", "고객 수(명)"],
     rows: [
       ["A", 100, 520, 300],
@@ -304,10 +107,15 @@ export const SAMPLE_DATA: Record<string, SampleData> = {
       ["C", 240, 940, 410],
       ["D", 320, 1350, 800],
       ["E", 90, 380, 150],
+      ["F", 150, 640, 360],
+      ["G", 280, 1100, 620],
+      ["H", 60, 300, 120],
     ],
   },
-  히트맵: {
-    shape: "행 이름 열 1개 + 숫자 열 여러 개 (행 × 열 표의 칸마다 색이 정해짐)",
+  // row names + several number columns forming a grid
+  weekHours: {
+    about:
+      "요일·시간대별 방문자. 행 이름 열 1개 + 숫자 열 여러 개 (행 × 열 표)",
     headers: ["요일", "오전", "오후", "저녁"],
     rows: [
       ["월", 120, 340, 210],
@@ -319,24 +127,44 @@ export const SAMPLE_DATA: Record<string, SampleData> = {
       ["일", 70, 250, 380],
     ],
   },
-  "상관 행렬 그래프": {
-    shape: "숫자 열 3개 이상 (열끼리의 상관계수를 차트가 계산)",
-    headers: ["광고비", "방문자", "전환수", "매출"],
+
+  // ---- tables only one chart uses ----
+  cashFlow: {
+    about:
+      "현금 증감. 항목 이름 열 1개 + 증감 숫자 열 1개 (양수는 증가, 음수는 감소)",
+    headers: ["항목", "증감(만원)"],
     rows: [
-      [100, 1200, 90, 520],
-      [150, 1850, 140, 710],
-      [120, 1500, 110, 600],
-      [210, 2300, 210, 980],
-      [190, 2100, 180, 880],
-      [260, 2900, 260, 1250],
-      [90, 1100, 70, 430],
-      [230, 2500, 230, 1100],
+      ["기초 잔액", 500],
+      ["매출", 320],
+      ["인건비", -180],
+      ["광고비", -90],
+      ["기타 수익", 60],
+      ["임대료", -70],
     ],
   },
-
-  // ---- others ----
-  "레이더 차트": {
-    shape: "항목 이름 열 1개(축) + 숫자 열 1개 이상(비교 대상)",
+  defects: {
+    about: "불량 유형별 건수. 항목 이름 열 1개 + 건수 열 1개 (큰 순서로 정렬)",
+    headers: ["불량 유형", "건수"],
+    rows: [
+      ["스크래치", 48],
+      ["찍힘", 30],
+      ["색 불균일", 18],
+      ["치수 불량", 10],
+      ["기타", 6],
+    ],
+  },
+  experiment: {
+    about: "실험군별 점수. 항목 이름 열 1개 + 평균 열 1개 + 오차 열 1개",
+    headers: ["실험군", "평균(점)", "오차(±)"],
+    rows: [
+      ["대조군", 52, 4.5],
+      ["실험군 A", 61, 5.2],
+      ["실험군 B", 68, 3.8],
+      ["실험군 C", 74, 6.1],
+    ],
+  },
+  skills: {
+    about: "팀원별 역량. 항목 이름 열 1개(축) + 숫자 열 1개 이상(비교 대상)",
     headers: ["역량", "팀원 A", "팀원 B"],
     rows: [
       ["기획", 80, 60],
@@ -346,8 +174,8 @@ export const SAMPLE_DATA: Record<string, SampleData> = {
       ["문서화", 60, 75],
     ],
   },
-  "생키 다이어그램": {
-    shape: "출발 열 + 도착 열 + 크기 숫자 열 (한 줄이 흐름 하나)",
+  userFlow: {
+    about: "이용 흐름. 출발 열 + 도착 열 + 크기 숫자 열 (한 줄이 흐름 하나)",
     headers: ["출발", "도착", "방문자(명)"],
     rows: [
       ["검색", "홈", 600],
@@ -359,8 +187,8 @@ export const SAMPLE_DATA: Record<string, SampleData> = {
       ["스튜디오", "이탈", 400],
     ],
   },
-  "세계 지도 단계구분도": {
-    shape: "국가 이름 열 1개 + 숫자 열 1개",
+  countries: {
+    about: "국가별 사용자. 국가 이름 열 1개 + 숫자 열 1개",
     headers: ["국가", "사용자(명)"],
     rows: [
       ["대한민국", 5200],
@@ -375,8 +203,9 @@ export const SAMPLE_DATA: Record<string, SampleData> = {
       ["호주", 380],
     ],
   },
-  "간트 차트": {
-    shape: "작업 이름 열 + 시작 날짜 열 + 종료 날짜 열 (YYYY-MM-DD)",
+  schedule: {
+    about:
+      "프로젝트 일정. 작업 이름 열 + 시작 날짜 열 + 종료 날짜 열 (YYYY-MM-DD)",
     headers: ["작업", "시작", "종료"],
     rows: [
       ["기획", "2026-01-05", "2026-01-23"],
@@ -386,8 +215,9 @@ export const SAMPLE_DATA: Record<string, SampleData> = {
       ["출시", "2026-04-20", "2026-04-24"],
     ],
   },
-  "바 차트 레이스": {
-    shape: "시간 열 1개(연도·월 등, 오래된 것부터) + 항목별 숫자 열 여러 개",
+  cityPopulation: {
+    about:
+      "도시별 인구 변화. 시간 열 1개(연도·월 등, 오래된 것부터) + 항목별 숫자 열 여러 개",
     headers: ["연도", "서울", "부산", "대구", "인천"],
     rows: [
       [2018, 970, 340, 245, 295],
@@ -398,16 +228,57 @@ export const SAMPLE_DATA: Record<string, SampleData> = {
       [2023, 935, 327, 234, 301],
     ],
   },
+} satisfies Record<string, SampleTable>;
+
+export type SampleTableName = keyof typeof SAMPLE_TABLES;
+
+// chart name (same as lib/chart-catalog.ts and ChartDefinition.type) -> the table it is shown with
+export const SAMPLE_OF: Record<string, SampleTableName> = {
+  // bar family
+  "막대 차트": "monthlyVisitors",
+  "그룹 막대 차트": "monthlyChannels",
+  "누적 막대 차트": "monthlyChannels",
+  "100% 누적 막대 차트": "monthlyChannels",
+  "오차 막대 차트": "experiment",
+  "폭포 차트": "cashFlow",
+  "파레토 차트": "defects",
+  // line / area family
+  "선 차트": "monthlyVisitors",
+  "면적 차트": "monthlyVisitors",
+  "누적 면적 차트": "monthlyChannels",
+  // pie / composition family
+  "원형 차트": "trafficShare",
+  "도넛 차트": "trafficShare",
+  트리맵: "hierarchy",
+  "선버스트 차트": "hierarchy",
+  // distribution family
+  히스토그램: "classScores",
+  "밀도 그래프": "classScores",
+  "박스 플롯": "classScores",
+  "바이올린 플롯": "classScores",
+  "스트립 플롯": "classScores",
+  // relation family
+  산점도: "scatterPoints",
+  "버블 차트": "scatterPoints",
+  히트맵: "weekHours",
+  "상관 행렬 그래프": "weekHours",
+  // others
+  "레이더 차트": "skills",
+  "생키 다이어그램": "userFlow",
+  "세계 지도 단계구분도": "countries",
+  "간트 차트": "schedule",
+  "바 차트 레이스": "cityPopulation",
 };
 
 // The example table of a chart as a Dataset (all values as text, like an uploaded file), or null if
 // the chart has no example yet.
 export function sampleDataset(type: string): Dataset | null {
-  const s = SAMPLE_DATA[type];
-  if (!s) return null;
+  const name = SAMPLE_OF[type];
+  if (!name) return null;
+  const table: SampleTable = SAMPLE_TABLES[name];
   return {
     name: "sample.csv",
-    headers: s.headers,
-    rows: s.rows.map((row) => row.map(String)),
+    headers: table.headers,
+    rows: table.rows.map((row) => row.map(String)),
   };
 }
