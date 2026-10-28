@@ -33,6 +33,7 @@ npm run build      # 프로덕션 빌드 (타입 검사 포함, 반드시 통과
 
 ```
 app/            페이지 (/, /studio, /studio/editor, /studio/loading, /mypage, /guide, /login, /signup, /terms, /privacy, /auth/*)
+                (/studio의 실제 화면은 components/studio-flow.tsx, page.tsx는 미리보기를 그려 넘기는 서버 컴포넌트)
 components/     화면 조각. 차트는 components/charts/
 lib/            차트 옵션·데이터 처리, 파일 파싱, 내보내기, 인증·저장
 docs/TODO.md    해야 할 일
@@ -52,9 +53,46 @@ docs/TODO.md    해야 할 일
 3. **`ChartDefinition.type`은 `lib/chart-catalog.ts`의 한글 이름과 글자 하나까지 같아야 합니다**
    (예: `'도넛 차트'`). 같아야 홈의 차트 목록에 "이용 가능"으로 바뀝니다.
 4. 이 차트가 쓰는 옵션만 `supports`에 켭니다. 옵션 패널은 `supports`에 따라 항목을 숨깁니다.
+5. **샘플 데이터는 `lib/sample-data.ts`에 28종 모두 이미 있습니다.** 차트를 등록하면 홈의 차트 목록과 `/studio` 차트 선택에서
+   마우스를 올렸을 때 예시 그림이 **자동으로 나옵니다**(따로 연결할 것이 없습니다). 만든 차트에 그 샘플 표가 안 맞으면
+   (열 개수·모양이 다르면) `sample-data.ts`의 해당 항목을 고치세요. `shape`에 이 차트가 원하는 표 모양을 글로 적어 두었습니다.
+6. 이 차트에 맞는 분류(막대형, 선·면적형 등)는 `lib/chart-catalog.ts`에 이미 정해져 있습니다. 분류를 바꾸고 싶으면 거기서 한 줄만 옮깁니다.
 
 새 옵션이 필요하면: `lib/chart-spec.ts`의 `ChartSpec`에 필드와 기본값을 추가하고(예전에 저장한 차트는
 기본값이 자동으로 채워집니다), `components/chart-options-panel.tsx`에 컨트롤을 추가하고, 차트에서 읽습니다.
+
+## 차트 미리보기 (빌드 때 그려 둡니다)
+
+- 미리보기 그림은 **사용자 기기에서 계산하지 않습니다.** 서버 컴포넌트(`app/page.tsx`, `app/studio/page.tsx`)가
+  `renderPreviews()`(`components/preview-nodes.tsx`)로 **빌드할 때 한 번** 차트를 그려서, 화면 컴포넌트
+  (`HoverPreview`, `ChartPicker`)에 완성된 결과만 넘깁니다. 차트 그리는 코드가 그대로라서 실제 모양과 어긋나지 않습니다.
+- 그래서 `app/studio/page.tsx`는 **서버 컴포넌트로 유지**하세요. `"use client"`를 붙이면 안 됩니다. 실제 화면은
+  `components/studio-flow.tsx`(클라이언트)에 있습니다.
+- `react-dom/server`(HTML/SVG 문자열 만들기)는 Next.js 서버 컴포넌트 안에서 쓸 수 없습니다(빌드 에러). 그림을 파일로
+  만들려고 하지 말고, 지금 방식(서버 컴포넌트가 그려서 prop으로 전달)을 따르세요.
+- 예시 데이터는 **`lib/sample-data.ts` 한 파일**에만 있습니다(차트 이름 → 표). 숫자·행·열을 바꾸고 싶으면 거기서만 고치세요.
+  차트가 하나 늘 때마다 CHART_NEEDS(`lib/data-guide.ts`, 사용자에게 보이는 데이터 안내)와 표 모양이 어긋나지 않는지 같이 봅니다.
+- 미리보기는 샘플 데이터로 그린 **예시**입니다. "내 데이터로 미리보기"가 필요하면 별도 작업으로 하세요(큰 데이터는 느려질 수 있어
+  앞쪽 일부 행만 써야 합니다).
+
+## 브라우저 저장소 (오래 남기지 않습니다)
+
+`localStorage`는 읽고 쓰는 것이 동기라서, 안 쓰는 데이터가 쌓이면 모든 페이지가 느려집니다. 그래서 **저장하는 모든 것에
+보관 기간이 있고**, `lib/storage-cleanup.ts`가 페이지를 열 때마다(브라우저가 한가할 때) 기간이 지난 것을 지웁니다.
+
+| 데이터 | 위치 | 보관 |
+| --- | --- | --- |
+| 작업 중인 차트(새로고침 대비), 이메일 인증 정보 | sessionStorage | 탭을 닫으면 사라짐 |
+| 소셜 로그인 진행 중 정보(`mac-studio:social:*`) | localStorage | 10분 |
+| 로그인 표시(`mac-studio:user`) | localStorage | 마지막 사용 후 30일 |
+| 계정별 저장 데이터(`mac-studio:saved:v3:*`) | localStorage | 그 계정을 마지막으로 쓴 뒤 90일 |
+| 옛 형식 저장 데이터(`saved:v1`, `v2`) | localStorage | 바로 삭제 |
+
+- **새 키를 만들면** `lib/storage-keys.ts`에 등록하고, 보관 기간을 정해 `sweepStorage()`에 정리 규칙을 추가하세요.
+  기간 없이 계속 쌓이는 키는 만들지 않습니다. 가능하면 `sessionStorage`를 먼저 고려하세요.
+- 저장된 데이터는 마이페이지에 "90일이 지나면 정리돼요"로 안내합니다(`RETENTION`). 기간을 바꾸면 안내 문구도 같이 바뀝니다.
+- 백엔드로 저장이 옮겨가면 계정별 저장 데이터 정리(4번 단계)는 필요 없으니 그때 제거하세요.
+- `useStoredString`(`lib/external-store.ts`)은 렌더마다 `localStorage`를 읽습니다. 큰 값을 여러 곳에서 읽지 마세요.
 
 ## 코드 스타일 (중요: 파일마다 다릅니다)
 

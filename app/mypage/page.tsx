@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FolderOpen, Plus, Search, Trash2 } from "lucide-react";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { ChartView } from "@/components/charts/chart-view";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useUser } from "@/lib/auth";
+import { RETENTION } from "@/lib/storage-cleanup";
 import { loadDataset, openWorkspace } from "@/lib/workspace";
 import {
   MEMBER_STORAGE_MB,
@@ -33,6 +34,9 @@ export default function MyPage() {
     | { kind: "chart"; folderId: string; chartId: string }
     | null
   >(null);
+
+  // measured only when the saved list changes (it serializes everything, so not on every render)
+  const used = useMemo(() => sizeOf(saved), [saved]);
 
   if (!user) {
     return (
@@ -100,7 +104,6 @@ export default function MyPage() {
       : undefined;
   const closeConfirm = () => setPending(null);
 
-  const used = sizeOf(saved);
   const usedMb = (used / 1024 / 1024).toFixed(used < 1024 * 1024 ? 2 : 1);
   const usedPct = Math.min(
     100,
@@ -160,6 +163,11 @@ export default function MyPage() {
           </div>
         </div>
       </div>
+      <p className="-mt-3 mb-6 text-[11px] leading-[1.7] text-[color:var(--c-text-99a1b1)]">
+        지금은 저장한 내용이 이 브라우저에만 남아요. 마지막으로 이용한 지{" "}
+        {RETENTION.accountDays}일이 지나면 자동으로 정리되니, 오래 보관할 차트는
+        이미지로 내려받아 두세요.
+      </p>
 
       {saved.length === 0 ? (
         <div
