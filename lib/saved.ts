@@ -3,6 +3,7 @@ import { normalizeChart, type ChartSpec } from './chart-spec'
 import type { Dataset } from './csv'
 import { useStoredString, writeStored } from './external-store'
 import { MEMBER_STORAGE_MB } from './limits'
+import { SAVED_PREFIX } from './storage-keys'
 
 export type { ChartSpec }
 
@@ -18,7 +19,7 @@ export type SavedDataset = {
 export { FREE_UPLOAD_MB, MEMBER_UPLOAD_MB, MEMBER_STORAGE_MB } from './limits'
 const MEMBER_STORAGE_BYTES = MEMBER_STORAGE_MB * 1024 * 1024
 
-const keyFor = (email: string) => `mac-studio:saved:v3:${email}`
+const keyFor = (email: string) => `${SAVED_PREFIX}${email}`
 
 export const newId = () => Math.random().toString(36).slice(2, 9)
 
