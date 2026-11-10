@@ -154,6 +154,11 @@ export const CHART_NEEDS: Record<string, { shape: string; example: string }> = {
       "항목 이름 열 + 숫자 열 하나. 항목은 10개 안팎이 보기 좋아요. 음수는 쓸 수 없어요.",
     example: "유입 경로 비율, 지출 구성",
   },
+  "파레토 차트": {
+    shape:
+      "항목 이름 열 + 숫자 열 하나. 큰 순서로 자동 정렬되고, 누적 비율 선이 같이 그려져요. 음수는 쓸 수 없어요.",
+    example: "불량 유형별 건수, 불만 사유별 접수 건수",
+  },
 };
 export const DEFAULT_NEED = { shape: "항목 이름 열 + 숫자 열.", example: "" };
 
@@ -198,6 +203,8 @@ const CHART_HINT: Record<string, string> = {
     "차트 종류: 원형 차트. 숫자 열은 하나만 두고, 항목은 10개 이내로 해 주세요. 작은 항목은 ‘기타’로 합쳐 주세요. 음수는 쓰지 마세요.",
   "도넛 차트":
     "차트 종류: 도넛 차트. 숫자 열은 하나만 두고, 항목은 10개 이내로 해 주세요. 작은 항목은 ‘기타’로 합쳐 주세요. 음수는 쓰지 마세요.",
+  "파레토 차트":
+    "차트 종류: 파레토 차트. 원인·유형 같은 항목을 한 줄씩, 건수나 금액을 숫자 열 하나로 만들어 주세요. 음수는 쓰지 마세요.",
 };
 
 export function buildPrompt(chartType?: string) {

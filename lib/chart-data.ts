@@ -1,4 +1,4 @@
-import type { ChartSpec } from './chart-spec'
+import type { ChartSpec, RowSort } from './chart-spec'
 import { toNumber, type Dataset } from './csv'
 
 // What a chart component actually draws: already cut down to the chosen rows, order and top N.
@@ -16,7 +16,9 @@ const byName = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' })
 
 // Pipeline: pick rows (range or ticked) -> put in order -> keep the first N (and fold the rest into
 // "기타" if asked). `allowSort` is false for charts where row order is the meaning (line charts).
-export function prepareData(ds: Dataset, spec: ChartSpec, allowSort: boolean): ChartData {
+// `fixedSort` is for charts that always use one order (pareto), whatever the user picked.
+export function prepareData(ds: Dataset, spec: ChartSpec, allowSort: boolean, fixedSort?: RowSort): ChartData {
+  const sort = fixedSort ?? (allowSort ? spec.sort : 'none')
   let rows: string[][]
   if (spec.rowMode === 'manual') {
     const picked = [...new Set(spec.picked)].filter((n) => n >= 1 && n <= ds.rows.length).sort((a, b) => a - b)
@@ -32,14 +34,14 @@ export function prepareData(ds: Dataset, spec: ChartSpec, allowSort: boolean): C
     value: toNumber(r[spec.valueCol]),
   }))
 
-  if (allowSort && spec.sort !== 'none') {
-    const order: Record<Exclude<typeof spec.sort, 'none'>, (a: Item, b: Item) => number> = {
+  if (sort !== 'none') {
+    const order: Record<Exclude<RowSort, 'none'>, (a: Item, b: Item) => number> = {
       valueDesc: (a, b) => b.value - a.value,
       valueAsc: (a, b) => a.value - b.value,
       nameAsc: (a, b) => byName.compare(a.label, b.label),
       nameDesc: (a, b) => byName.compare(b.label, a.label),
     }
-    items = [...items].sort(order[spec.sort])
+    items = [...items].sort(order[sort])
   }
 
   const n = spec.topN
