@@ -278,7 +278,7 @@ export function inspectDataset(ds: Dataset, meta: Meta = {}): Issue[] {
         id: "negative",
         level: "info",
         title: "음수가 있어요",
-        detail: "지금 Studio의 막대·원형 차트는 음수를 0으로 그려요.",
+        detail: "지금 Studio의 막대·원형·도넛 차트는 음수를 0으로 그려요.",
       });
     }
   }
