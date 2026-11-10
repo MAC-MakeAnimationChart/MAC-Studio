@@ -19,7 +19,8 @@ function niceScale(dataMax: number) {
   return { step, max: step * intervals }
 }
 
-export function cartesian(spec: ChartSpec, data: ChartData, layout: Layout) {
+// `right` is the room right of the plot; charts with a second axis on the right (pareto) need more.
+export function cartesian(spec: ChartSpec, data: ChartData, layout: Layout, right = 24) {
   const scale = niceScale(Math.max(...data.values, 0))
   const max = scale.max
   const tickCount = Math.round(max / scale.step)
@@ -32,7 +33,6 @@ export function cartesian(spec: ChartSpec, data: ChartData, layout: Layout) {
     }),
   )
   const left = 12 + Math.max(...tickLabels.map((l) => textWidth(l, spec.textSize))) + 8
-  const right = 24
   const count = Math.max(data.labels.length, 1)
   const step = (W - left - right) / count
   const widest = Math.max(0, ...data.labels.map((l) => textWidth(l, spec.textSize)))
