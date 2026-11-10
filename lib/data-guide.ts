@@ -149,6 +149,11 @@ export const CHART_NEEDS: Record<string, { shape: string; example: string }> = {
       "항목 이름 열 + 숫자 열 하나. 항목은 10개 안팎이 보기 좋아요. 음수는 쓸 수 없어요.",
     example: "응답 비율, 예산 구성",
   },
+  "도넛 차트": {
+    shape:
+      "항목 이름 열 + 숫자 열 하나. 항목은 10개 안팎이 보기 좋아요. 음수는 쓸 수 없어요.",
+    example: "유입 경로 비율, 지출 구성",
+  },
 };
 export const DEFAULT_NEED = { shape: "항목 이름 열 + 숫자 열.", example: "" };
 
@@ -191,6 +196,8 @@ const CHART_HINT: Record<string, string> = {
     "차트 종류: 선 차트. 시간(연도·월·일)을 첫 번째 열에 세로로, 오래된 것부터 정렬해 주세요.",
   "원형 차트":
     "차트 종류: 원형 차트. 숫자 열은 하나만 두고, 항목은 10개 이내로 해 주세요. 작은 항목은 ‘기타’로 합쳐 주세요. 음수는 쓰지 마세요.",
+  "도넛 차트":
+    "차트 종류: 도넛 차트. 숫자 열은 하나만 두고, 항목은 10개 이내로 해 주세요. 작은 항목은 ‘기타’로 합쳐 주세요. 음수는 쓰지 마세요.",
 };
 
 export function buildPrompt(chartType?: string) {
