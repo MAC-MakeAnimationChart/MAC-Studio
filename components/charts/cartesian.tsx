@@ -20,12 +20,21 @@ function niceScale(dataMax: number) {
 }
 
 // `right` is the room right of the plot; charts with a second axis on the right (pareto) need more.
-export function cartesian(spec: ChartSpec, data: ChartData, layout: Layout, right = 24) {
-  const scale = niceScale(Math.max(...data.values, 0))
-  const max = scale.max
-  const tickCount = Math.round(max / scale.step)
+// `negative` lets the axis go below 0 (waterfall); other charts start at 0 and draw negatives as 0.
+export function cartesian(spec: ChartSpec, data: ChartData, layout: Layout, right = 24, negative = false) {
+  const lo = negative ? Math.min(...data.values, 0) : 0
+  const hi = Math.max(...data.values, 0)
+  const scale = niceScale(hi - lo)
+  // whole steps on each side of 0, so 0 is always a tick (same float-noise rounding as niceScale)
+  const steps = (v: number) => Math.ceil(Math.round((v / scale.step) * 1e6) / 1e6)
+  const min = lo < 0 ? -steps(-lo) * scale.step : 0
+  const max = lo < 0 ? steps(hi) * scale.step : scale.max
+  const tickCount = Math.round((max - min) / scale.step)
   const decimals = scale.step >= 1 ? (Number.isInteger(scale.step) ? 0 : 1) : Math.ceil(-Math.log10(scale.step))
-  const ticks = Array.from({ length: tickCount + 1 }, (_, i) => Number((i * scale.step).toFixed(decimals)))
+  const ticks = Array.from({ length: tickCount + 1 }, (_, i) => {
+    const t = Number((min + i * scale.step).toFixed(decimals))
+    return t === 0 ? 0 : t // no "-0" label
+  })
   const tickLabels = ticks.map((t) =>
     t.toLocaleString(undefined, {
       minimumFractionDigits: decimals,
@@ -37,6 +46,7 @@ export function cartesian(spec: ChartSpec, data: ChartData, layout: Layout, righ
   const step = (W - left - right) / count
   const widest = Math.max(0, ...data.labels.map((l) => textWidth(l, spec.textSize)))
   return {
+    min,
     max,
     ticks,
     tickLabels,
@@ -46,7 +56,7 @@ export function cartesian(spec: ChartSpec, data: ChartData, layout: Layout, righ
     // horizontal labels need their width; rotated ones only their line height
     labelStep: Math.max(1, Math.ceil((spec.xLabelDir === 'horizontal' ? widest + 8 : spec.textSize * (spec.xLabelDir === 'vertical' ? 1.3 : 1.7)) / step)),
     x: (i: number) => left + step * i + step / 2,
-    y: (v: number) => layout.plotBottom - (Math.max(v, 0) / max) * PLOT_H,
+    y: (v: number) => layout.plotBottom - ((Math.max(v, min) - min) / (max - min)) * PLOT_H,
   }
 }
 
