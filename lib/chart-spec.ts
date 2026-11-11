@@ -25,7 +25,8 @@ export type ChartSpec = {
 
   // data: which columns, which rows, how many
   labelCol: number
-  valueCol: number
+  valueCol: number // the first (or only) value column
+  extraCols: number[] // more value columns after valueCol, one series each; only charts with supports.multiSeries use them
   errorCol: number | null // the ± column, error bar charts only; null = no error bars
   rowMode: 'range' | 'manual' // which rows are in play: a start..end range, or rows ticked one by one
   rowStart: number // 1-based, inclusive (range mode)
@@ -81,10 +82,21 @@ export function autoTitle(dataset: Dataset, labelCol: number, valueCol: number) 
   return `${value} by ${label}`
 }
 
-// A single series needs no legend (the title says what it is); pies and donuts list their slices.
-export const defaultLegend = (type: string) => type === '원형 차트' || type === '도넛 차트'
+// A single series needs no legend (the title says what it is); pies and donuts list their slices,
+// and charts with several series need it to tell them apart.
+export const defaultLegend = (type: string, multiSeries = false) => multiSeries || type === '원형 차트' || type === '도넛 차트'
 
-export function createChartSpec(id: string, type: string, dataset: Dataset): ChartSpec {
+// One color per series from the 8-color palette, so more would repeat colors
+export const MAX_SERIES = 8
+
+// Series to start a multi-series chart with: every number column after the value one.
+export const defaultExtraCols = (dataset: Dataset, valueCol: number) =>
+  numericColumns(dataset)
+    .filter((c) => c !== valueCol)
+    .slice(0, MAX_SERIES - 1)
+
+// `multiSeries` is the chart's `supports.multiSeries`: such charts start with every number column as a series.
+export function createChartSpec(id: string, type: string, dataset: Dataset, multiSeries = false): ChartSpec {
   const numCols = numericColumns(dataset)
   const valueCol = numCols[0] ?? 1
   return {
@@ -92,6 +104,7 @@ export function createChartSpec(id: string, type: string, dataset: Dataset): Cha
     type,
     labelCol: 0,
     valueCol,
+    extraCols: multiSeries ? defaultExtraCols(dataset, valueCol) : [],
     // the number column after the value one, as in "평균, 오차"
     errorCol: numCols[1] ?? null,
     rowMode: 'range',
@@ -112,7 +125,7 @@ export function createChartSpec(id: string, type: string, dataset: Dataset): Cha
     barShade: 0,
     textSize: 11,
     textBold: false,
-    legend: defaultLegend(type),
+    legend: defaultLegend(type, multiSeries),
     legendSize: 12,
     legendBold: false,
     xLabelDir: 'horizontal',

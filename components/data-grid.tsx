@@ -32,6 +32,8 @@ export function DataGrid({ dataset, spec, onDataset, onSpec }: Props) {
   const start = spec.rowStart;
   const end = Math.min(spec.rowEnd ?? total, total);
   const rangeIsAll = start === 1 && end === total;
+  // every column drawn as a series (more than one only on multi-series charts)
+  const valueCols = [spec.valueCol, ...spec.extraCols];
   const visible = Math.min(total, MAX_EDIT_ROWS);
 
   const editCell = (r: number, c: number, value: string) =>
@@ -84,7 +86,8 @@ export function DataGrid({ dataset, spec, onDataset, onSpec }: Props) {
         <div className="flex flex-col gap-0.5 text-[12px]">
           <span className="font-bold text-[color:var(--c-text-0c1b4c)]">
             차트로 그릴 영역: {rangeIsAll ? "전체" : `${start}~${end}행`} · 이름{" "}
-            {columnLetter(spec.labelCol)}열 · 값 {columnLetter(spec.valueCol)}열
+            {columnLetter(spec.labelCol)}열 · 값{" "}
+            {valueCols.map((c) => `${columnLetter(c)}열`).join(", ")}
           </span>
           <span className="text-[color:var(--c-text-99a1b1)]">
             행 번호를 누르면 시작 행, Shift를 누르고 누르면 끝 행이 정해져요.
@@ -123,13 +126,13 @@ export function DataGrid({ dataset, spec, onDataset, onSpec }: Props) {
               {dataset.headers.map((_, c) => (
                 <th
                   key={c}
-                  className={`${cell} px-2 py-1 ${c === spec.labelCol || c === spec.valueCol ? "bg-[color:var(--c-bg-e3ecff)] text-[color:var(--c-text-1f44b3)]" : ""}`}
+                  className={`${cell} px-2 py-1 ${c === spec.labelCol || valueCols.includes(c) ? "bg-[color:var(--c-bg-e3ecff)] text-[color:var(--c-text-1f44b3)]" : ""}`}
                 >
                   {columnLetter(c)}
                   {c === spec.labelCol && (
                     <span className="ml-1 font-medium">이름</span>
                   )}
-                  {c === spec.valueCol && (
+                  {valueCols.includes(c) && (
                     <span className="ml-1 font-medium">값</span>
                   )}
                 </th>

@@ -26,3 +26,9 @@ export function sliceColors(spec: ChartSpec, labels: string[]) {
   if (labels.length > MAX_SLICE_PICKERS) return series
   return labels.map((label, i) => spec.sliceColors[label] ?? series[i])
 }
+
+// One color per series of a multi-series chart: the chart color first, then the rest of the palette.
+export function seriesColors(spec: ChartSpec, count: number) {
+  const base = paletteFrom(spec.color)
+  return Array.from({ length: count }, (_, i) => base[i % base.length])
+}
