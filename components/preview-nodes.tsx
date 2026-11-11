@@ -17,7 +17,12 @@ export function renderPreviews(): PreviewNodes {
   for (const def of CHARTS) {
     const dataset = sampleDataset(def.type);
     if (!dataset) continue;
-    const spec = createChartSpec("preview", def.type, dataset);
+    const spec = createChartSpec(
+      "preview",
+      def.type,
+      dataset,
+      def.supports.multiSeries,
+    );
     nodes[def.type] = <ChartView dataset={dataset} spec={spec} />;
   }
   return nodes;

@@ -1,7 +1,9 @@
 import { useSyncExternalStore } from "react";
+import { getChart } from "@/components/charts/registry";
 import {
   autoTitle,
   createChartSpec,
+  defaultExtraCols,
   defaultLegend,
   normalizeChart,
   type ChartSpec,
@@ -126,9 +128,18 @@ export function selectChart(type: string) {
   const { dataset, chart } = state;
   if (!dataset) return;
   if (chart?.type === type) return;
+  // multi-series charts start with every number column as a series; other charts keep only one
+  const multi = !!getChart(type).supports.multiSeries;
   if (chart)
-    return set({ chart: { ...chart, type, legend: defaultLegend(type) } });
-  set({ chart: createChartSpec(newId(), type, dataset) });
+    return set({
+      chart: {
+        ...chart,
+        type,
+        legend: defaultLegend(type, multi),
+        extraCols: multi ? defaultExtraCols(dataset, chart.valueCol) : [],
+      },
+    });
+  set({ chart: createChartSpec(newId(), type, dataset, multi) });
 }
 
 export function updateChart(spec: ChartSpec) {
