@@ -18,6 +18,11 @@ export const COLOR_PRESETS = PALETTE
 export const DEFAULT_COLOR = BASE_COLORS[0]
 export const DEFAULT_BG = '#FFFFFF'
 
+// A second color that stands apart from the chart color (pareto's cumulative line, waterfall's decreases):
+// orange, or the brand blue when the chart itself is orange.
+const ACCENT = PALETTE[6].value
+export const accentFor = (color: string) => (color.toLowerCase() === ACCENT.toLowerCase() ? DEFAULT_COLOR : ACCENT)
+
 // Slice / series colors: the chosen color first, then the rest of the base palette.
 export const paletteFrom = (color: string) => [color, ...BASE_COLORS.filter((c) => c.toLowerCase() !== color.toLowerCase())]
 

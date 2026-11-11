@@ -1,18 +1,12 @@
 import { ChartColumnDecreasing } from 'lucide-react'
-import { DEFAULT_COLOR, PALETTE, inkFor, shade } from '@/lib/chart-palette'
+import { accentFor, inkFor, shade } from '@/lib/chart-palette'
 import { Axes, cartesian } from './cartesian'
-import type { ChartSpec } from '@/lib/chart-spec'
-import { ChartFrame, PLOT_H, SvgText, W, frameLayout, textWidth, type Layout } from './frame'
+import { ChartFrame, LegendRow, PLOT_H, SvgText, W, frameLayout, textWidth } from './frame'
 import type { ChartComponentProps, ChartDefinition } from './types'
 
-const SIDE = 24
 const PERCENT_TICKS = [0, 20, 40, 60, 80, 100]
 // The "vital few" line of the 80/20 rule
 const VITAL = 80
-const ORANGE = PALETTE.find((c) => c.name === '주황')!.value
-
-// The cumulative line needs to stand out from the bars whatever color the user picks for them.
-const lineColorFor = (barColor: string) => (barColor.toLowerCase() === ORANGE.toLowerCase() ? DEFAULT_COLOR : ORANGE)
 
 export function ParetoChart({ spec, data }: ChartComponentProps) {
   const ink = inkFor(spec.bg)
@@ -25,7 +19,8 @@ export function ParetoChart({ spec, data }: ChartComponentProps) {
   const g = cartesian(spec, data, layout, right)
   const bar = g.step * (spec.barWidth / 100)
   const fill = shade(spec.color, spec.barShade)
-  const lineColor = lineColorFor(spec.color)
+  // the cumulative line has to stand out from the bars whatever color the user picks for them
+  const lineColor = accentFor(spec.color)
 
   // rows already come largest first (definition `sort`); negatives count as 0, like the bars
   const counted = data.values.map((v) => Math.max(v, 0))
@@ -36,11 +31,11 @@ export function ParetoChart({ spec, data }: ChartComponentProps) {
 
   return (
     <ChartFrame spec={spec} layout={layout} ariaLabel={spec.title || '파레토 차트'}>
-      <ParetoLegend
+      <LegendRow
         spec={spec}
         layout={layout}
         items={[
-          { name: data.seriesName, color: fill, line: false },
+          { name: data.seriesName, color: fill },
           { name: '누적 비율(%)', color: lineColor, line: true },
         ]}
       />
@@ -59,40 +54,6 @@ export function ParetoChart({ spec, data }: ChartComponentProps) {
         <circle key={i} cx={g.x(i)} cy={py(p)} r="3.5" fill={spec.bg} stroke={lineColor} strokeWidth="2" />
       ))}
     </ChartFrame>
-  )
-}
-
-type LegendItem = { name: string; color: string; line: boolean }
-
-// Two entries (bars, cumulative line), right-aligned above the plot like the single-series legend.
-function ParetoLegend({ spec, layout, items }: { spec: ChartSpec; layout: Layout; items: LegendItem[] }) {
-  if (!spec.legend || layout.legendY === null) return null
-  const ink = inkFor(spec.bg)
-  const size = spec.legendSize
-  const box = Math.round(size * 0.85)
-  const shown = items.filter((it) => it.name)
-  const widths = shown.map((it) => box + 6 + textWidth(it.name, size))
-  const gap = 16
-  const start = W - SIDE - (widths.reduce((a, b) => a + b, 0) + gap * (shown.length - 1))
-  const y = layout.legendY
-  return (
-    <g>
-      {shown.map((it, i) => {
-        const left = start + widths.slice(0, i).reduce((a, b) => a + b + gap, 0)
-        return (
-          <g key={it.name}>
-            {it.line ? (
-              <line x1={left} x2={left + box} y1={y - box / 2 + 1} y2={y - box / 2 + 1} stroke={it.color} strokeWidth="2.5" />
-            ) : (
-              <rect x={left} y={y - box + 1} width={box} height={box} rx="2" fill={it.color} />
-            )}
-            <SvgText x={left + box + 6} y={y} size={size} bold={spec.legendBold} fill={ink.text} maxWidth={widths[i]}>
-              {it.name}
-            </SvgText>
-          </g>
-        )
-      })}
-    </g>
   )
 }
 

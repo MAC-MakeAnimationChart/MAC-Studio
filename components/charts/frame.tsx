@@ -172,3 +172,38 @@ export function SeriesLegend({ spec, layout, name, color }: { spec: ChartSpec; l
     </g>
   )
 }
+
+export type LegendItem = { name: string; color: string; line?: boolean }
+
+// Several swatches in one row, right-aligned above the plot (pareto: bars + line; waterfall: up / down / total).
+// `line` draws a short line instead of a box, for a series drawn as a line.
+export function LegendRow({ spec, layout, items }: { spec: ChartSpec; layout: Layout; items: LegendItem[] }) {
+  if (!spec.legend || layout.legendY === null) return null
+  const ink = inkFor(spec.bg)
+  const size = spec.legendSize
+  const box = Math.round(size * 0.85)
+  const shown = items.filter((it) => it.name)
+  const widths = shown.map((it) => box + 6 + textWidth(it.name, size))
+  const gap = 16
+  const start = W - SIDE - (widths.reduce((a, b) => a + b, 0) + gap * (shown.length - 1))
+  const y = layout.legendY
+  return (
+    <g>
+      {shown.map((it, i) => {
+        const left = start + widths.slice(0, i).reduce((a, b) => a + b + gap, 0)
+        return (
+          <g key={it.name}>
+            {it.line ? (
+              <line x1={left} x2={left + box} y1={y - box / 2 + 1} y2={y - box / 2 + 1} stroke={it.color} strokeWidth="2.5" />
+            ) : (
+              <rect x={left} y={y - box + 1} width={box} height={box} rx="2" fill={it.color} />
+            )}
+            <SvgText x={left + box + 6} y={y} size={size} bold={spec.legendBold} fill={ink.text} maxWidth={widths[i]}>
+              {it.name}
+            </SvgText>
+          </g>
+        )
+      })}
+    </g>
+  )
+}
