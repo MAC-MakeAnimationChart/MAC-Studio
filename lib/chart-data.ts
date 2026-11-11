@@ -1,22 +1,25 @@
-import type { ChartSpec } from './chart-spec'
+import type { ChartSpec, RowSort } from './chart-spec'
 import { toNumber, type Dataset } from './csv'
 
 // What a chart component actually draws: already cut down to the chosen rows, order and top N.
 export type ChartData = {
   labels: string[]
   values: number[]
+  errors: number[] // ± of each value from spec.errorCol (error bar charts); all 0 when there is none
   seriesName: string
 }
 
 export const OTHERS_LABEL = '기타'
 
-type Item = { label: string; value: number }
+type Item = { label: string; value: number; error: number }
 
 const byName = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' })
 
 // Pipeline: pick rows (range or ticked) -> put in order -> keep the first N (and fold the rest into
 // "기타" if asked). `allowSort` is false for charts where row order is the meaning (line charts).
-export function prepareData(ds: Dataset, spec: ChartSpec, allowSort: boolean): ChartData {
+// `fixedSort` is for charts that always use one order (pareto), whatever the user picked.
+export function prepareData(ds: Dataset, spec: ChartSpec, allowSort: boolean, fixedSort?: RowSort): ChartData {
+  const sort = fixedSort ?? (allowSort ? spec.sort : 'none')
   let rows: string[][]
   if (spec.rowMode === 'manual') {
     const picked = [...new Set(spec.picked)].filter((n) => n >= 1 && n <= ds.rows.length).sort((a, b) => a - b)
@@ -30,16 +33,17 @@ export function prepareData(ds: Dataset, spec: ChartSpec, allowSort: boolean): C
   let items: Item[] = rows.map((r) => ({
     label: r[spec.labelCol] ?? '',
     value: toNumber(r[spec.valueCol]),
+    error: spec.errorCol === null ? 0 : Math.abs(toNumber(r[spec.errorCol])),
   }))
 
-  if (allowSort && spec.sort !== 'none') {
-    const order: Record<Exclude<typeof spec.sort, 'none'>, (a: Item, b: Item) => number> = {
+  if (sort !== 'none') {
+    const order: Record<Exclude<RowSort, 'none'>, (a: Item, b: Item) => number> = {
       valueDesc: (a, b) => b.value - a.value,
       valueAsc: (a, b) => a.value - b.value,
       nameAsc: (a, b) => byName.compare(a.label, b.label),
       nameDesc: (a, b) => byName.compare(b.label, a.label),
     }
-    items = [...items].sort(order[spec.sort])
+    items = [...items].sort(order[sort])
   }
 
   const n = spec.topN
@@ -53,6 +57,8 @@ export function prepareData(ds: Dataset, spec: ChartSpec, allowSort: boolean): C
             {
               label: OTHERS_LABEL,
               value: rest.reduce((sum, i) => sum + i.value, 0),
+              // a sum has no meaningful ± from the parts' errors, so "기타" gets no error bar
+              error: 0,
             },
           ]
         : kept
@@ -61,6 +67,7 @@ export function prepareData(ds: Dataset, spec: ChartSpec, allowSort: boolean): C
   return {
     labels: items.map((i) => i.label),
     values: items.map((i) => i.value),
+    errors: items.map((i) => i.error),
     seriesName: ds.headers[spec.valueCol] ?? '',
   }
 }

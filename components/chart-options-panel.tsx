@@ -451,7 +451,7 @@ export function ChartOptionsPanel({ spec, dataset, def, onChange }: Props) {
   const sortable = def.supports.sortable;
   const topOn = spec.topN !== null;
   // the categories as drawn: after the row pick, sort and top N
-  const labels = prepareData(dataset, spec, sortable).labels;
+  const labels = prepareData(dataset, spec, sortable, def.sort).labels;
 
   return (
     <div className="flex flex-col">
@@ -482,6 +482,27 @@ export function ChartOptionsPanel({ spec, dataset, def, onChange }: Props) {
             ))}
           </select>
         </Field>
+        {def.supports.errorBars && (
+          <Field label="오차 열 (±)">
+            <select
+              value={spec.errorCol ?? ""}
+              onChange={(e) =>
+                set({
+                  errorCol:
+                    e.target.value === "" ? null : Number(e.target.value),
+                })
+              }
+              className={field}
+            >
+              <option value="">없음</option>
+              {numCols.map((i) => (
+                <option key={i} value={i}>
+                  {dataset.headers[i] || `열 ${i + 1}`}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
         <div className="flex flex-col gap-1.5">
           <span className={caption}>행 선택</span>
           <div
@@ -583,6 +604,11 @@ export function ChartOptionsPanel({ spec, dataset, def, onChange }: Props) {
               <option value="nameDesc">이름 역순</option>
             </select>
           </Field>
+        )}
+        {def.sort === "valueDesc" && (
+          <p className="text-[11px] text-[color:var(--c-text-7b8497)]">
+            이 차트는 값이 큰 순서로 자동 정렬돼요.
+          </p>
         )}
         <div className="flex flex-col gap-1.5">
           <span className={caption}>
