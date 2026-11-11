@@ -5,12 +5,13 @@ import { toNumber, type Dataset } from './csv'
 export type ChartData = {
   labels: string[]
   values: number[]
+  errors: number[] // ± of each value from spec.errorCol (error bar charts); all 0 when there is none
   seriesName: string
 }
 
 export const OTHERS_LABEL = '기타'
 
-type Item = { label: string; value: number }
+type Item = { label: string; value: number; error: number }
 
 const byName = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' })
 
@@ -32,6 +33,7 @@ export function prepareData(ds: Dataset, spec: ChartSpec, allowSort: boolean, fi
   let items: Item[] = rows.map((r) => ({
     label: r[spec.labelCol] ?? '',
     value: toNumber(r[spec.valueCol]),
+    error: spec.errorCol === null ? 0 : Math.abs(toNumber(r[spec.errorCol])),
   }))
 
   if (sort !== 'none') {
@@ -55,6 +57,8 @@ export function prepareData(ds: Dataset, spec: ChartSpec, allowSort: boolean, fi
             {
               label: OTHERS_LABEL,
               value: rest.reduce((sum, i) => sum + i.value, 0),
+              // a sum has no meaningful ± from the parts' errors, so "기타" gets no error bar
+              error: 0,
             },
           ]
         : kept
@@ -63,6 +67,7 @@ export function prepareData(ds: Dataset, spec: ChartSpec, allowSort: boolean, fi
   return {
     labels: items.map((i) => i.label),
     values: items.map((i) => i.value),
+    errors: items.map((i) => i.error),
     seriesName: ds.headers[spec.valueCol] ?? '',
   }
 }
