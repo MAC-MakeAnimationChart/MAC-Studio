@@ -482,6 +482,27 @@ export function ChartOptionsPanel({ spec, dataset, def, onChange }: Props) {
             ))}
           </select>
         </Field>
+        {def.supports.errorBars && (
+          <Field label="오차 열 (±)">
+            <select
+              value={spec.errorCol ?? ""}
+              onChange={(e) =>
+                set({
+                  errorCol:
+                    e.target.value === "" ? null : Number(e.target.value),
+                })
+              }
+              className={field}
+            >
+              <option value="">없음</option>
+              {numCols.map((i) => (
+                <option key={i} value={i}>
+                  {dataset.headers[i] || `열 ${i + 1}`}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
         <div className="flex flex-col gap-1.5">
           <span className={caption}>행 선택</span>
           <div

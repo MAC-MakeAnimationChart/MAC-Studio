@@ -26,6 +26,7 @@ export type ChartSpec = {
   // data: which columns, which rows, how many
   labelCol: number
   valueCol: number
+  errorCol: number | null // the ± column, error bar charts only; null = no error bars
   rowMode: 'range' | 'manual' // which rows are in play: a start..end range, or rows ticked one by one
   rowStart: number // 1-based, inclusive (range mode)
   rowEnd: number | null // 1-based, inclusive; null = through the last row (range mode)
@@ -84,12 +85,15 @@ export function autoTitle(dataset: Dataset, labelCol: number, valueCol: number) 
 export const defaultLegend = (type: string) => type === '원형 차트' || type === '도넛 차트'
 
 export function createChartSpec(id: string, type: string, dataset: Dataset): ChartSpec {
-  const valueCol = numericColumns(dataset)[0] ?? 1
+  const numCols = numericColumns(dataset)
+  const valueCol = numCols[0] ?? 1
   return {
     id,
     type,
     labelCol: 0,
     valueCol,
+    // the number column after the value one, as in "평균, 오차"
+    errorCol: numCols[1] ?? null,
     rowMode: 'range',
     rowStart: 1,
     rowEnd: null,

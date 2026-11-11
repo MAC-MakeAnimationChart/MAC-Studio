@@ -11,6 +11,7 @@ export type ChartSupports = {
   sliceColors: boolean // each category can get its own color (pie)
   axes: boolean // axis label size / bold
   sortable: boolean // ordering rows (by value / name) makes sense (false when row order is the meaning, e.g. time series)
+  errorBars?: boolean // a ± column can be picked (error bar chart)
 }
 
 // One entry per chart type. To add a chart: write <name>-chart.tsx exporting a definition,
