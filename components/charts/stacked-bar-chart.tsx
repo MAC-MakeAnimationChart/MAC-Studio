@@ -31,18 +31,29 @@ function stackSegments(series: Series[], count: number) {
   return columns
 }
 
-export function StackedBarChart({ spec, data }: ChartComponentProps) {
-  const { series } = data
+// Each category's values as its share of that category's total, in %. A share of a whole has no
+// negative part, so negatives count as 0. A category whose total is 0 gets an empty bar.
+function toPercent(series: Series[], count: number): Series[] {
+  const totals = Array.from({ length: count }, (_, i) => series.reduce((sum, s) => sum + Math.max(s.values[i] ?? 0, 0), 0))
+  return series.map((s) => ({ ...s, values: s.values.map((v, i) => (totals[i] > 0 ? (Math.max(v, 0) / totals[i]) * 100 : 0)) }))
+}
+
+// `percent` draws every bar as 100% (the 100% stacked bar chart shares this component).
+export function StackedBarChart({ spec, data, percent = false }: ChartComponentProps & { percent?: boolean }) {
+  const count = data.labels.length
+  const series = percent ? toPercent(data.series, count) : data.series
   const layout = frameLayout(spec, { legendRow: spec.legend, axisLabels: true, labels: data.labels })
-  const columns = stackSegments(series, data.labels.length)
-  // the axis reaches the top of the tallest pile, and below 0 when some values are negative
-  const edges = columns.flatMap((c) => c.map((s) => s.to))
-  const g = cartesian(spec, { ...data, values: edges }, layout, 24, true)
+  const columns = stackSegments(series, count)
+  // the axis reaches the top of the tallest pile, and below 0 when some values are negative;
+  // in percent mode it is always 0-100%
+  const edges = percent ? [100] : columns.flatMap((c) => c.map((s) => s.to))
+  const axis = cartesian(spec, { ...data, values: edges }, layout, 24, !percent)
+  const g = percent ? { ...axis, tickLabels: axis.tickLabels.map((l) => `${l}%`) } : axis
   const bar = g.step * (spec.barWidth / 100)
   const colors = seriesColors(spec, series.length).map((c) => shade(c, spec.barShade))
 
   return (
-    <ChartFrame spec={spec} layout={layout} ariaLabel={spec.title || '누적 막대 차트'}>
+    <ChartFrame spec={spec} layout={layout} ariaLabel={spec.title || (percent ? '100% 누적 막대 차트' : '누적 막대 차트')}>
       <LegendRow spec={spec} layout={layout} items={series.map((s, k) => ({ name: s.name, color: colors[k] }))} />
       <Axes spec={spec} data={data} layout={layout} g={g} />
       {columns.map((column, i) =>
