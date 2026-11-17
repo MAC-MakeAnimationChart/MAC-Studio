@@ -10,12 +10,13 @@ import {
   ramp,
   sliceColors,
 } from "@/lib/chart-colors";
-import type {
-  Align,
-  ChartSpec,
-  LabelDir,
-  RowSort,
-  TextStyle,
+import {
+  MAX_SERIES,
+  type Align,
+  type ChartSpec,
+  type LabelDir,
+  type RowSort,
+  type TextStyle,
 } from "@/lib/chart-spec";
 import { numericColumns, type Dataset } from "@/lib/csv";
 import type { ChartDefinition } from "@/components/charts/types";
@@ -55,6 +56,60 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
       <span className={caption}>{label}</span>
       {children}
     </label>
+  );
+}
+
+// Value columns of a multi-series chart, ticked one by one. The ticked columns in table order are
+// the series: the first becomes `valueCol` (it drives the auto title and sorting), the rest `extraCols`.
+function SeriesPicker({
+  dataset,
+  numCols,
+  spec,
+  onChange,
+}: {
+  dataset: Dataset;
+  numCols: number[];
+  spec: ChartSpec;
+  onChange: (patch: Pick<ChartSpec, "valueCol" | "extraCols">) => void;
+}) {
+  const chosen = new Set([spec.valueCol, ...spec.extraCols]);
+  const full = chosen.size >= MAX_SERIES;
+  const toggle = (col: number) => {
+    const next = new Set(chosen);
+    if (next.has(col)) next.delete(col);
+    else next.add(col);
+    const cols = numCols.filter((c) => next.has(c));
+    if (cols.length === 0) return; // a chart needs at least one series
+    onChange({ valueCol: cols[0], extraCols: cols.slice(1) });
+  };
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className={caption}>
+        값 열 ({chosen.size}개, 열 하나가 계열 하나 · 최대 {MAX_SERIES}개)
+      </span>
+      <ul className="rounded-lg border border-[color:var(--c-border-e3e6f0)] p-1">
+        {numCols.map((c) => {
+          const on = chosen.has(c);
+          return (
+            <li key={c}>
+              <label className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-[12px] hover:bg-[color:var(--c-bg-fafafc)]">
+                <input
+                  type="checkbox"
+                  checked={on}
+                  disabled={(!on && full) || (on && chosen.size === 1)}
+                  onChange={() => toggle(c)}
+                  className="size-3.5 accent-[#2F66F5]"
+                />
+                <span className="min-w-0 flex-1 truncate">
+                  {dataset.headers[c] || `열 ${c + 1}`}
+                </span>
+              </label>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
@@ -469,19 +524,28 @@ export function ChartOptionsPanel({ spec, dataset, def, onChange }: Props) {
             ))}
           </select>
         </Field>
-        <Field label="값 열">
-          <select
-            value={spec.valueCol}
-            onChange={(e) => set({ valueCol: Number(e.target.value) })}
-            className={field}
-          >
-            {numCols.map((i) => (
-              <option key={i} value={i}>
-                {dataset.headers[i] || `열 ${i + 1}`}
-              </option>
-            ))}
-          </select>
-        </Field>
+        {def.supports.multiSeries ? (
+          <SeriesPicker
+            dataset={dataset}
+            numCols={numCols}
+            spec={spec}
+            onChange={(patch) => set(patch)}
+          />
+        ) : (
+          <Field label="값 열">
+            <select
+              value={spec.valueCol}
+              onChange={(e) => set({ valueCol: Number(e.target.value) })}
+              className={field}
+            >
+              {numCols.map((i) => (
+                <option key={i} value={i}>
+                  {dataset.headers[i] || `열 ${i + 1}`}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
         {def.supports.errorBars && (
           <Field label="오차 열 (±)">
             <select
