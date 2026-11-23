@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 250" width="180" height="250"><defs><filter id="blur-s" x="-30%" y="-100%" width="160%" height="300%"><feGaussianBlur stdDeviation="6"/></filter></defs><g transform="translate(0 0)">
+<ellipse cx="95.30" cy="239" rx="84" ry="11" fill="rgba(15,33,103,0.15)" opacity="1.000" filter="url(#blur-s)"/>
+<polygon points="103.96,155.00 138.60,175.00 138.60,63.07 103.96,43.07" fill="#0F2167"/>
+<polygon points="138.60,175.00 173.24,155.00 173.24,43.07 138.60,63.07" fill="#2E6DF6"/>
+<polygon points="138.60,23.07 173.24,43.07 138.60,63.07 103.96,43.07" fill="#32C5FF"/>
+<polygon points="60.66,180.00 95.30,200.00 95.30,116.00 60.66,96.00" fill="#0F2167"/>
+<polygon points="95.30,200.00 129.94,180.00 129.94,96.00 95.30,116.00" fill="#2E6DF6"/>
+<polygon points="95.30,76.00 129.94,96.00 95.30,116.00 60.66,96.00" fill="#32C5FF"/>
+<polygon points="17.36,205.00 52.00,225.00 52.00,169.00 17.36,149.00" fill="#0F2167"/>
+<polygon points="52.00,225.00 86.64,205.00 86.64,149.00 52.00,169.00" fill="#2E6DF6"/>
+<polygon points="52.00,129.00 86.64,149.00 52.00,169.00 17.36,149.00" fill="#32C5FF"/>
+</g></svg>
