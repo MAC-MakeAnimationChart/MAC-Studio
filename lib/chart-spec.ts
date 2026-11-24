@@ -28,7 +28,7 @@ export type ChartSpec = {
   valueCol: number // the first (or only) value column
   extraCols: number[] // more value columns after valueCol, one series each; only charts with supports.multiSeries use them
   errorCol: number | null // the ± column, error bar charts only; null = no error bars
-  groupCol: number | null // the upper level each item belongs to (treemap); null = items stand alone
+  groupCol: number | null // the upper level each item belongs to (treemap, sunburst); null = items stand alone
   rowMode: 'range' | 'manual' // which rows are in play: a start..end range, or rows ticked one by one
   rowStart: number // 1-based, inclusive (range mode)
   rowEnd: number | null // 1-based, inclusive; null = through the last row (range mode)
@@ -96,7 +96,7 @@ export const defaultExtraCols = (dataset: Dataset, valueCol: number) =>
     .filter((c) => c !== valueCol)
     .slice(0, MAX_SERIES - 1)
 
-// Columns for a chart with an upper level (treemap): with two text columns, as in "분류, 항목, 매출",
+// Columns for a chart with an upper level (treemap, sunburst): with two text columns, as in "분류, 항목, 매출",
 // the first is the group and the second the item. Otherwise there is no group.
 export function defaultHierarchy(dataset: Dataset): { groupCol: number | null; labelCol: number } {
   const numCols = new Set(numericColumns(dataset))

@@ -10,6 +10,7 @@ import { pieChart } from './pie-chart'
 import { stackedAreaChart } from './stacked-area-chart'
 import { stackedBarChart } from './stacked-bar-chart'
 import { waterfallChart } from './waterfall-chart'
+import { sunburstChart } from './sunburst-chart'
 import { treemapChart } from './treemap-chart'
 import type { ChartDefinition } from './types'
 
@@ -26,6 +27,7 @@ export const CHARTS: ChartDefinition[] = [
   pieChart,
   donutChart,
   treemapChart,
+  sunburstChart,
   paretoChart,
   errorBarChart,
   waterfallChart,
