@@ -2,15 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, ShieldAlert } from "lucide-react";
 import { CHARTS } from "@/components/charts/registry";
+import { Breadcrumb } from "@/components/breadcrumb";
 import { GuideTable } from "@/components/guide-table";
 import { PromptCopier, SampleDownloads } from "@/components/guide-tools";
 import { CHART_NEEDS, DEFAULT_NEED, EXAMPLES, RULES } from "@/lib/data-guide";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "데이터 형식 안내 — MAC Studio",
-  description:
-    "차트가 되는 표 모양, 예시, 샘플 파일, AI에 정리를 맡기는 프롬프트",
-};
+export const metadata: Metadata = pageMetadata("/guide");
 
 const card =
   "rounded-lg border border-[color:var(--c-border-e5e8f0)] bg-[color:var(--c-bg-ffffff)]";
@@ -18,6 +16,7 @@ const card =
 export default function GuidePage() {
   return (
     <main className="mx-auto max-w-[1000px] px-6 pb-24 pt-14 text-[color:var(--c-text-0c1b4c)] sm:px-10">
+      <Breadcrumb trail={[{ name: "데이터 형식 안내", path: "/guide" }]} />
       <header className="flex flex-col gap-3">
         <h1 className="text-[36px] font-light leading-[1.2] tracking-[-0.03em] sm:text-[44px]">
           차트가 되는 표, 이렇게 만들어요

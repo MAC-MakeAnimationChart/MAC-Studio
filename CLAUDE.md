@@ -4,7 +4,7 @@
 
 MAC(Make A Chart)의 무료 버전 **Studio**. CSV·XLSX를 올리면 차트를 만들고 다듬어서 이미지로 내려받는
 비개발자용 노코드 도구입니다. 유료 버전 Expert는 이 저장소의 범위가 아닙니다.
-작업 목록은 [docs/TODO.md](docs/TODO.md)에 있고, 프로젝트 소개는 [README.md](README.md)에 있습니다.
+작업 목록은 [docs/TODO.md](docs/TODO.md), 검색엔진 최적화는 [docs/SEO.md](docs/SEO.md)에 있고, 프로젝트 소개는 [README.md](README.md)에 있습니다.
 
 ## 먼저 알아둘 것
 
@@ -24,6 +24,7 @@ npm install        # 처음 한 번
 npm run dev        # 개발 서버 http://localhost:3000
 npm run lint       # 코드 검사 (에러 0개여야 함)
 npm run build      # 프로덕션 빌드 (타입 검사 포함, 반드시 통과해야 함)
+npm run seo:check  # npm start로 띄운 사이트의 검색엔진 설정 점검 (페이지·메타데이터를 건드렸을 때)
 ```
 
 작업을 끝내기 전에 **`npm run lint`와 `npm run build`를 둘 다 실행**하고, 화면이 바뀌는 작업이면
@@ -37,6 +38,8 @@ app/            페이지 (/, /studio, /studio/editor, /studio/loading, /mypage,
 components/     화면 조각. 차트는 components/charts/
 lib/            차트 옵션·데이터 처리, 파일 파싱, 내보내기, 인증·저장
 docs/TODO.md    해야 할 일
+docs/SEO.md     검색엔진 최적화 가이드와 점검 목록
+docs/EH_TODO.md 사람이 해야 하는 일·사람의 결정이 필요한 일(AI가 대신 정하지 않는 것)
 ```
 
 사용자 흐름: 업로드(`/studio`) → 데이터 확인 → 차트 선택 → `/studio/loading` → 편집(`/studio/editor`).
@@ -77,6 +80,22 @@ docs/TODO.md    해야 할 일
   차트가 하나 늘 때마다 CHART_NEEDS(`lib/data-guide.ts`, 사용자에게 보이는 데이터 안내)와 표 모양이 어긋나지 않는지 같이 봅니다.
 - 미리보기는 샘플 데이터로 그린 **예시**입니다. "내 데이터로 미리보기"가 필요하면 별도 작업으로 하세요(큰 데이터는 느려질 수 있어
   앞쪽 일부 행만 써야 합니다).
+
+## 검색엔진 최적화(SEO) 규칙
+
+전체 설명·체크리스트 현황·배포 후 할 일은 **[docs/SEO.md](docs/SEO.md)** 에 있습니다. 코드를 고칠 때 지킬 규칙만 적습니다.
+
+- **모든 페이지의 제목·설명·색인 여부는 `lib/seo.ts`의 `SITE_PAGES` 한 곳**에 적습니다. 사이트맵(`app/sitemap.ts`)과 robots(`app/robots.ts`)는
+  여기서 자동으로 만들어지니 직접 고치지 않습니다.
+- **새 페이지를 만들면** `SITE_PAGES`에 먼저 추가하고, 페이지에서 `export const metadata = pageMetadata("/경로")`를 씁니다.
+  `"use client"` 페이지는 `metadata`를 내보낼 수 없으니 같은 폴더의 `layout.tsx`가 대신 내보냅니다(`app/mypage/layout.tsx` 참고).
+- 페이지에서 `<title>`, `<meta>`, `openGraph`를 **직접 쓰지 마세요**(공유 이미지·언어가 사라집니다). 사이트 주소는 `https://…`를 직접 쓰지 말고 `SITE_URL`(`lib/seo.ts`)을 씁니다.
+- 색인하는 페이지: `<h1>` **하나만**, 설명 120~155자, 제목은 짧게(한글 30자 안팎). 로그인 후 화면은 `index: false`.
+- `robots`로 막은 페이지에 `noindex`만 기대하지 마세요(막으면 크롤러가 읽지 못합니다). 이유와 규칙은 docs/SEO.md 8번.
+- 페이지 **내용**을 바꾸면 그 페이지의 `lastModified`를 바꾼 날짜로 고칩니다(배포 날짜가 아닙니다).
+- `app/opengraph-image.tsx`에서 파일 읽기는 **모듈 맨 위**에서 합니다. 함수 안에서 읽으면 요청마다 서버가 그림을 만들어 비용이 생깁니다.
+- 이미지는 `next/image`를 쓰고 `alt`를 씁니다(장식이면 `alt=""`). 서드파티 스크립트는 `next/script`로만, 그리고 `components/analytics.tsx`처럼 환경변수로 켜고 끌 수 있게 합니다.
+- 끝낸 뒤 `npm run build` → `npm start` → `npm run seo:check`가 모두 통과해야 합니다.
 
 ## 브라우저 저장소 (오래 남기지 않습니다)
 
@@ -139,6 +158,8 @@ docs/TODO.md    해야 할 일
 - 요청받지 않은 리팩터링, 의존성(라이브러리) 추가, 폴더 구조 변경을 하지 마세요. 새 라이브러리가 필요해 보이면
   먼저 사람에게 물어보세요.
 - Expert(유료) 기능을 만들지 마세요.
+- **사람이 정해야 하는 것은 임의로 정하지 마세요**(정책, 수치, 문구, 도메인, 키·계정, 법적 내용). `docs/EH_TODO.md`에 한 줄 추가하고 사람에게 물어보세요.
+  임시값을 쓰면 코드 주석과 EH_TODO에 "임시"라고 남깁니다.
 
 ## Git 규칙
 
