@@ -10,11 +10,26 @@ import { pieChart } from './pie-chart'
 import { stackedAreaChart } from './stacked-area-chart'
 import { stackedBarChart } from './stacked-bar-chart'
 import { waterfallChart } from './waterfall-chart'
+import { treemapChart } from './treemap-chart'
 import type { ChartDefinition } from './types'
 
 // The charts the studio can build, in the order they are offered.
 // Adding a chart = create its file next to these, export a ChartDefinition, add it here.
-export const CHARTS: ChartDefinition[] = [barChart, groupedBarChart, stackedBarChart, percentStackedBarChart, lineChart, areaChart, stackedAreaChart, pieChart, donutChart, paretoChart, errorBarChart, waterfallChart]
+export const CHARTS: ChartDefinition[] = [
+  barChart,
+  groupedBarChart,
+  stackedBarChart,
+  percentStackedBarChart,
+  lineChart,
+  areaChart,
+  stackedAreaChart,
+  pieChart,
+  donutChart,
+  treemapChart,
+  paretoChart,
+  errorBarChart,
+  waterfallChart,
+]
 
 export const CHART_TYPES = CHARTS.map((c) => c.type)
 

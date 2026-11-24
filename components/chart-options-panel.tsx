@@ -524,6 +524,29 @@ export function ChartOptionsPanel({ spec, dataset, def, onChange }: Props) {
             ))}
           </select>
         </Field>
+        {def.supports.hierarchy && (
+          <Field label="상위 항목 열 (묶음)">
+            <select
+              value={spec.groupCol ?? ""}
+              onChange={(e) =>
+                set({
+                  groupCol:
+                    e.target.value === "" ? null : Number(e.target.value),
+                })
+              }
+              className={field}
+            >
+              <option value="">없음</option>
+              {dataset.headers.map((h, i) =>
+                i === spec.labelCol || numCols.includes(i) ? null : (
+                  <option key={i} value={i}>
+                    {h || `열 ${i + 1}`}
+                  </option>
+                ),
+              )}
+            </select>
+          </Field>
+        )}
         {def.supports.multiSeries ? (
           <SeriesPicker
             dataset={dataset}

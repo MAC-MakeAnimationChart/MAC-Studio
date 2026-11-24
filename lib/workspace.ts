@@ -4,6 +4,7 @@ import {
   autoTitle,
   createChartSpec,
   defaultExtraCols,
+  defaultHierarchy,
   defaultLegend,
   normalizeChart,
   type ChartSpec,
@@ -128,18 +129,30 @@ export function selectChart(type: string) {
   const { dataset, chart } = state;
   if (!dataset) return;
   if (chart?.type === type) return;
-  // multi-series charts start with every number column as a series; other charts keep only one
-  const multi = !!getChart(type).supports.multiSeries;
-  if (chart)
+  // multi-series charts start with every number column as a series; other charts keep only one.
+  // Charts with an upper level (treemap) start with it picked; other charts drop it.
+  const supports = getChart(type).supports;
+  const multi = !!supports.multiSeries;
+  if (chart) {
+    const columns = supports.hierarchy
+      ? defaultHierarchy(dataset)
+      : { groupCol: null, labelCol: chart.labelCol };
+    const followsColumns =
+      chart.title === autoTitle(dataset, chart.labelCol, chart.valueCol);
     return set({
       chart: {
         ...chart,
         type,
         legend: defaultLegend(type, multi),
         extraCols: multi ? defaultExtraCols(dataset, chart.valueCol) : [],
+        ...columns,
+        title: followsColumns
+          ? autoTitle(dataset, columns.labelCol, chart.valueCol)
+          : chart.title,
       },
     });
-  set({ chart: createChartSpec(newId(), type, dataset, multi) });
+  }
+  set({ chart: createChartSpec(newId(), type, dataset, supports) });
 }
 
 export function updateChart(spec: ChartSpec) {

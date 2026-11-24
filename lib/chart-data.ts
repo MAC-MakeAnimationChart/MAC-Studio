@@ -10,13 +10,14 @@ export type ChartData = {
   // every value column as a series: the first is { seriesName, values } above, the rest come from
   // spec.extraCols (multi-series charts). Single-series charts can keep reading `values`.
   series: Series[]
+  groups: string[] // the upper level of each item from spec.groupCol (treemap); all '' when there is none
 }
 
 export type Series = { name: string; values: number[] }
 
 export const OTHERS_LABEL = '기타'
 
-type Item = { label: string; value: number; error: number; extras: number[] }
+type Item = { label: string; value: number; error: number; extras: number[]; group: string }
 
 const byName = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' })
 
@@ -44,6 +45,7 @@ export function prepareData(ds: Dataset, spec: ChartSpec, allowSort: boolean, fi
     value: toNumber(r[spec.valueCol]),
     error: spec.errorCol === null ? 0 : Math.abs(toNumber(r[spec.errorCol])),
     extras: extraCols.map((c) => toNumber(r[c])),
+    group: spec.groupCol === null ? '' : (r[spec.groupCol] ?? '').trim(),
   }))
 
   if (sort !== 'none') {
@@ -70,6 +72,8 @@ export function prepareData(ds: Dataset, spec: ChartSpec, allowSort: boolean, fi
               // a sum has no meaningful ± from the parts' errors, so "기타" gets no error bar
               error: 0,
               extras: extraCols.map((_, k) => rest.reduce((sum, i) => sum + i.extras[k], 0)),
+              // the rest may span several groups, so "기타" becomes a group of its own
+              group: spec.groupCol === null ? '' : OTHERS_LABEL,
             },
           ]
         : kept
@@ -83,5 +87,6 @@ export function prepareData(ds: Dataset, spec: ChartSpec, allowSort: boolean, fi
     errors: items.map((i) => i.error),
     seriesName,
     series: [{ name: seriesName, values }, ...extraCols.map((c, k) => ({ name: ds.headers[c] ?? '', values: items.map((i) => i.extras[k]) }))],
+    groups: items.map((i) => i.group),
   }
 }

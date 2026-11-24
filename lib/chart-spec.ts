@@ -28,6 +28,7 @@ export type ChartSpec = {
   valueCol: number // the first (or only) value column
   extraCols: number[] // more value columns after valueCol, one series each; only charts with supports.multiSeries use them
   errorCol: number | null // the ± column, error bar charts only; null = no error bars
+  groupCol: number | null // the upper level each item belongs to (treemap); null = items stand alone
   rowMode: 'range' | 'manual' // which rows are in play: a start..end range, or rows ticked one by one
   rowStart: number // 1-based, inclusive (range mode)
   rowEnd: number | null // 1-based, inclusive; null = through the last row (range mode)
@@ -95,16 +96,28 @@ export const defaultExtraCols = (dataset: Dataset, valueCol: number) =>
     .filter((c) => c !== valueCol)
     .slice(0, MAX_SERIES - 1)
 
-// `multiSeries` is the chart's `supports.multiSeries`: such charts start with every number column as a series.
-export function createChartSpec(id: string, type: string, dataset: Dataset, multiSeries = false): ChartSpec {
+// Columns for a chart with an upper level (treemap): with two text columns, as in "분류, 항목, 매출",
+// the first is the group and the second the item. Otherwise there is no group.
+export function defaultHierarchy(dataset: Dataset): { groupCol: number | null; labelCol: number } {
+  const numCols = new Set(numericColumns(dataset))
+  const textCols = dataset.headers.map((_, i) => i).filter((i) => !numCols.has(i))
+  return textCols.length >= 2 ? { groupCol: textCols[0], labelCol: textCols[1] } : { groupCol: null, labelCol: 0 }
+}
+
+// `opts` is the chart's `supports`: multi-series charts start with every number column as a series,
+// charts with an upper level start with it picked when the table has one.
+export function createChartSpec(id: string, type: string, dataset: Dataset, opts: { multiSeries?: boolean; hierarchy?: boolean } = {}): ChartSpec {
   const numCols = numericColumns(dataset)
   const valueCol = numCols[0] ?? 1
+  const { groupCol, labelCol } = opts.hierarchy ? defaultHierarchy(dataset) : { groupCol: null, labelCol: 0 }
+  const multiSeries = !!opts.multiSeries
   return {
     id,
     type,
-    labelCol: 0,
+    labelCol,
     valueCol,
     extraCols: multiSeries ? defaultExtraCols(dataset, valueCol) : [],
+    groupCol,
     // the number column after the value one, as in "평균, 오차"
     errorCol: numCols[1] ?? null,
     rowMode: 'range',
@@ -114,7 +127,7 @@ export function createChartSpec(id: string, type: string, dataset: Dataset, mult
     sort: 'none',
     topN: null,
     groupOthers: false,
-    title: autoTitle(dataset, 0, valueCol),
+    title: autoTitle(dataset, labelCol, valueCol),
     titleStyle: { ...titleDefaults },
     subtitle: '',
     subtitleStyle: { ...subtitleDefaults },
