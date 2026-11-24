@@ -1,10 +1,12 @@
-import type { Metadata, Viewport } from "next";
+import type { Viewport } from "next";
 import localFont from "next/font/local";
+import { Analytics } from "@/components/analytics";
 import { AppToaster } from "@/components/app-toaster";
 import { AuthModalProvider } from "@/components/auth-modal";
 import { SiteFooter } from "@/components/site-footer";
 import { StorageCleanup } from "@/components/storage-cleanup";
 import { SiteHeader } from "@/components/site-header";
+import { LAYOUT_METADATA } from "@/lib/seo";
 import { THEME_INIT_SCRIPT } from "@/lib/theme-script";
 import "./globals.css";
 
@@ -21,14 +23,8 @@ const scDream = localFont({
   ],
 });
 
-export const metadata: Metadata = {
-  title: "MAC Studio — 데이터를 올리면, 차트가 완성돼요.",
-  description: "비전공자를 위한 노코드 데이터 시각화 스튜디오",
-  icons: {
-    icon: "/icon.png",
-    apple: "/apple-icon.png",
-  },
-};
+// Title, description, Open Graph and the rest of the search settings live in lib/seo.ts.
+export const metadata = LAYOUT_METADATA;
 
 export const viewport: Viewport = {
   colorScheme: "light dark",
@@ -60,6 +56,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </AuthModalProvider>
         <AppToaster />
         <StorageCleanup />
+        <Analytics />
       </body>
     </html>
   );

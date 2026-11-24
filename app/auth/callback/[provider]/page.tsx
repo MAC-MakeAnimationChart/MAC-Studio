@@ -4,7 +4,7 @@ import { SocialCallback } from "@/components/social-callback";
 import { PROVIDERS, isProvider } from "@/lib/social-auth";
 
 export const metadata: Metadata = {
-  title: "로그인 중 — MAC Studio",
+  title: "로그인 중",
   robots: { index: false },
 };
 

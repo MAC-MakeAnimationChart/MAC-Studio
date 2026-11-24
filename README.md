@@ -186,6 +186,7 @@ npm install
 npm run dev      # http://localhost:3000
 npm run build    # 프로덕션 빌드
 npm run lint
+npm run seo:check   # npm start로 띄운 사이트의 검색엔진 설정 점검 (docs/SEO.md)
 ```
 
 ---

@@ -4,7 +4,7 @@ import { MockProvider } from "@/components/mock-provider";
 import { PROVIDERS, isProvider } from "@/lib/social-auth";
 
 export const metadata: Metadata = {
-  title: "소셜 로그인 (데모) — MAC Studio",
+  title: "소셜 로그인 (데모)",
   robots: { index: false },
 };
 

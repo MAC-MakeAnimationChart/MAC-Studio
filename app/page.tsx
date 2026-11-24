@@ -1,16 +1,63 @@
 import type { CSSProperties } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { HeroDemo } from "@/components/hero-demo";
+import { JsonLd } from "@/components/json-ld";
 import { HomeCharts } from "@/components/home-charts";
 import { HomeSteps } from "@/components/home-steps";
 import { renderPreviews } from "@/components/preview-nodes";
 import { Reveal } from "@/components/reveal";
 import { STUDIO_CATALOG, EXPERT_CHART_COUNT } from "@/lib/chart-catalog";
 import {
+  ORG_NAME,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_URL,
+  pageMetadata,
+} from "@/lib/seo";
+import {
   FREE_UPLOAD_MB,
   MEMBER_STORAGE_MB,
   MEMBER_UPLOAD_MB,
 } from "@/lib/limits";
+
+export const metadata: Metadata = pageMetadata("/");
+
+// Structured data for the home page: who runs the site, the site itself, and the tool.
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: ORG_NAME,
+      url: SITE_URL,
+      logo: `${SITE_URL}/logo-mark.png`,
+      // Add the official SNS / channel addresses here when they exist ("sameAs": ["https://..."]).
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      inLanguage: "ko-KR",
+      publisher: { "@id": `${SITE_URL}/#organization` },
+    },
+    {
+      "@type": "WebApplication",
+      "@id": `${SITE_URL}/#app`,
+      name: SITE_NAME,
+      url: `${SITE_URL}/studio`,
+      description: SITE_DESCRIPTION,
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      inLanguage: "ko-KR",
+      isAccessibleForFree: true,
+      offers: { "@type": "Offer", price: "0", priceCurrency: "KRW" },
+      publisher: { "@id": `${SITE_URL}/#organization` },
+    },
+  ],
+};
 
 const steps = [
   { title: "데이터셋 업로드", desc: "CSV 또는 XLSX를 올려요." },
@@ -30,6 +77,7 @@ export default function Home() {
   const previews = renderPreviews();
   return (
     <main className="home-page text-[color:var(--c-text-0c1b4c)]">
+      <JsonLd data={structuredData} />
       <section className="mx-auto flex max-w-[1200px] flex-col items-center gap-6 px-8 pt-[88px] text-center">
         <h1
           className="hero-in text-[40px] font-light leading-[1.15] tracking-[-0.03em] sm:text-[60px]"
