@@ -13,6 +13,7 @@ export type ChartSupports = {
   sortable: boolean // ordering rows (by value / name) makes sense (false when row order is the meaning, e.g. time series)
   errorBars?: boolean // a ± column can be picked (error bar chart)
   multiSeries?: boolean // several value columns can be picked, one series each (grouped / stacked bars, ...)
+  hierarchy?: boolean // an upper-level column can be picked to group the items (treemap)
 }
 
 // One entry per chart type. To add a chart: write <name>-chart.tsx exporting a definition,
