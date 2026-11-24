@@ -10,7 +10,7 @@ export type ChartData = {
   // every value column as a series: the first is { seriesName, values } above, the rest come from
   // spec.extraCols (multi-series charts). Single-series charts can keep reading `values`.
   series: Series[]
-  groups: string[] // the upper level of each item from spec.groupCol (treemap); all '' when there is none
+  groups: string[] // the upper level of each item from spec.groupCol (treemap, sunburst); all '' when there is none
 }
 
 export type Series = { name: string; values: number[] }
