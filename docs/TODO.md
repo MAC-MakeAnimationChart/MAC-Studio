@@ -3,6 +3,7 @@
 > 한 번에 **하나씩** 하세요. 끝나면 `[ ]`를 `[x]`로 바꾸고 커밋합니다.
 > 작업 전에 반드시 [CLAUDE.md](../CLAUDE.md)를 읽으세요. AI에게도 "CLAUDE.md를 먼저 읽고 시작해"라고 시키세요.
 > 각 항목의 **AI에게**는 그대로 복사해서 시작하면 되는 첫 지시문입니다.
+> 사람이 정해야 하는 것(정책·수치·문구·도메인·계정)은 [EH_TODO.md](EH_TODO.md)에 따로 모아 두었습니다.
 
 난이도: ⭐ 쉬움 · ⭐⭐ 보통 · ⭐⭐⭐ 어려움 · ⭐⭐⭐⭐ 매우 어려움
 
@@ -163,8 +164,28 @@
 
 ---
 
-## 7단계. 마무리
+## 7단계. 마무리 전에: 검색엔진 최적화(사람이 해야 하는 것)
 
-- [ ] **7-1. README 갱신**: 구현된 차트 수, 달라진 기능.
-- [ ] **7-2. 배포 확인**: `develop` → `main` PR 병합 후 Vercel에 새 배포가 뜨는지, 배포된 사이트에서 핵심 흐름 확인.
-- [ ] **7-3. 베타 출시 일정 정해서 README에 기록**.
+코드로 할 수 있는 SEO 설정은 끝났습니다(자세한 내용: [docs/SEO.md](SEO.md)). 아래는 도메인과 계정이 필요해서 사람이 해야 하는 일입니다.
+
+- [ ] **7-1. 도메인 확정 후 `NEXT_PUBLIC_SITE_URL` 설정** ⭐ — Vercel에 도메인을 연결하고, www/non-www 중 하나로 통일(Redirect), 환경변수 설정 후 재배포
+- [ ] **7-2. Google Search Console 등록** ⭐ — 소유 확인(`NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`), `sitemap.xml` 제출, 홈·`/studio` 색인 요청
+- [ ] **7-3. 네이버 서치어드바이저 등록** ⭐ — 소유 확인(`NEXT_PUBLIC_NAVER_SITE_VERIFICATION`), 사이트맵 제출, 수집 요청
+- [ ] **7-4. 운영 사이트 점검** ⭐ — `npm run seo:check -- https://실제주소`가 통과하는지, Rich Results Test·PageSpeed Insights(모바일) 측정, `http`→`https` 이동 확인
+- [ ] **7-5. 192×192, 512×512 아이콘 받아 manifest에 추가** ⭐ — 디자인 팀에 요청(`public/`에 넣고 `app/manifest.ts`의 `icons`에 추가)
+- [ ] **7-6. 공유 이미지(OG) 디자인 확정** ⭐ — 지금은 임시 디자인(`app/opengraph-image.tsx`)
+- [ ] **7-7. 사업자 정보(`lib/company.ts`)와 공식 SNS 주소(`sameAs`) 채우기** ⭐ — 모든 채널에서 같은 상호·주소·전화번호로
+- [ ] **7-8. GA4 켜기(선택)** ⭐ — 개인정보처리방침에 Google Analytics 사용을 먼저 명시한 뒤 `NEXT_PUBLIC_GA_ID` 설정
+- [ ] **7-9. 터치 요소 크기·색 대비 점검** ⭐⭐ — 11~12px 글자의 작은 버튼, 흐린 보조 글자(`--c-text-99a1b1` 등)
+- [ ] **7-10. 매주 Search Console 확인** — 색인 범위, 쿼리·클릭률·순위, Core Web Vitals, 오류 알림
+- [x] **7-11. Next.js 보안 업데이트** — 2026-11-23에 `next`와 `eslint-config-next`를 16.4.2 → **16.4.6**으로 올렸습니다(`npm audit`가 알려 준 Next.js 보안 경고 8건 해소).
+  남은 경고 7건은 린트 도구(`typescript-eslint`, `minimatch`)라서 사용자에게 가는 코드와 무관합니다. 앞으로도 빌드 중 "known security vulnerability" 안내가 나오면
+  `npm audit`로 원인을 보고 패치 버전으로 올리세요(올린 뒤 `npm run lint`, `npm run build`, `npm run seo:check`).
+
+---
+
+## 8단계. 마무리
+
+- [ ] **8-1. README 갱신**: 구현된 차트 수, 달라진 기능.
+- [ ] **8-2. 배포 확인**: `develop` → `main` PR 병합 후 Vercel에 새 배포가 뜨는지, 배포된 사이트에서 핵심 흐름 확인.
+- [ ] **8-3. 베타 출시 일정 정해서 README에 기록**.
