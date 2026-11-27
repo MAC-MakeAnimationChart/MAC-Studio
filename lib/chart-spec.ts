@@ -19,6 +19,10 @@ export type Margin = {
 
 // Everything the user can set on one chart. Charts that don't use a field simply ignore it
 // (see `supports` on each chart definition in components/charts).
+// Sent to the backend with every saved chart (figureSchemaVersion). Raise it only when a change breaks
+// how older saved specs are read, and convert old versions when loading.
+export const FIGURE_SCHEMA_VERSION = 1
+
 export type ChartSpec = {
   id: string
   type: string

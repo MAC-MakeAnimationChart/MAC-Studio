@@ -12,6 +12,7 @@ import { getChart } from "@/components/charts/registry";
 import { DataGrid } from "@/components/data-grid";
 import { ExportMenu } from "@/components/export-menu";
 import { useLeaveGuard } from "@/components/leave-guard";
+import { isMock } from "@/lib/api-client";
 import { useUser } from "@/lib/auth";
 import { deepEqual } from "@/lib/deep-equal";
 import { MEMBER_STORAGE_MB } from "@/lib/limits";
@@ -23,6 +24,7 @@ import {
   useSaved,
   writeSaved,
 } from "@/lib/saved";
+import { mirrorToServer } from "@/lib/saved-sync";
 import {
   hydrateWorkspace,
   replaceDataset,
@@ -111,6 +113,7 @@ export default function EditorPage() {
       date: today(),
       dataset,
       charts,
+      sync: existing?.sync,
     });
     if (overStorageLimit(list)) {
       toast.error(`저장 공간(${MEMBER_STORAGE_MB} MB)을 넘어요`, {
@@ -130,6 +133,7 @@ export default function EditorPage() {
     setFolderId(id);
     toast.dismiss("save-error");
     setSavedAt(clock());
+    if (!isMock) mirrorToServer(user, id, dataset, chart, !datasetSame, !chartSame, auto);
     if (!auto) {
       setCooldownUntil(Date.now() + SAVE_COOLDOWN_MS);
       setNow(Date.now());

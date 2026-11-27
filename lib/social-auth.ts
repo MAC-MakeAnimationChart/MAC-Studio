@@ -41,8 +41,12 @@ export type Pending = {
   verifier: string;
   redirectUri: string;
   returnTo: string; // where to go afterwards when no popup was used
+  purpose: SocialPurpose;
   createdAt: number;
 };
+
+// "reauth" = proving who the user is right before a withdrawal, not logging in.
+export type SocialPurpose = "login" | "reauth";
 
 const PENDING_TTL_MS = 10 * 60 * 1000;
 const pendingKey = (state: string) => `${SOCIAL_PENDING_PREFIX}${state}`;
@@ -93,7 +97,12 @@ async function challengeFor(verifier: string) {
 
 function authorizeUrl(
   provider: Provider,
-  p: { state: string; challenge: string; redirectUri: string },
+  p: {
+    state: string;
+    challenge: string;
+    redirectUri: string;
+    purpose: SocialPurpose;
+  },
 ) {
   const clientId = CLIENT_IDS[provider];
   if (!clientId) {
@@ -120,7 +129,12 @@ function authorizeUrl(
     })}`;
   if (provider === "kakao")
     // the consent items (nickname, email) are set in the Kakao developer console
-    return `https://kauth.kakao.com/oauth/authorize?${new URLSearchParams({ ...common, ...pkce })}`;
+    return `https://kauth.kakao.com/oauth/authorize?${new URLSearchParams({
+      ...common,
+      ...pkce,
+      // a withdrawal must be confirmed with a fresh login, not the existing Kakao session
+      ...(p.purpose === "reauth" ? { prompt: "login" } : {}),
+    })}`;
   // Naver has no PKCE; `state` is its only forgery protection
   return `https://nid.naver.com/oauth2.0/authorize?${new URLSearchParams(common)}`;
 }
@@ -129,6 +143,7 @@ function authorizeUrl(
 
 export type SocialOutcome =
   | { ok: true; user: AuthUser; isNewUser: boolean }
+  | { ok: true; reauth: true } // purpose "reauth" succeeded; nobody was logged in
   | { ok: false; code: string; message: string };
 
 export const SOCIAL_MESSAGE = "mac-social-result";
@@ -146,6 +161,7 @@ const POPUP = { width: 480, height: 680 };
 export async function startSocialLogin(
   provider: Provider,
   returnTo: string,
+  purpose: SocialPurpose = "login",
 ): Promise<SocialOutcome | null> {
   // open the window right now, inside the click, so popup blockers allow it
   const left = window.screenX + (window.outerWidth - POPUP.width) / 2;
@@ -163,6 +179,7 @@ export async function startSocialLogin(
     state,
     challenge: await challengeFor(verifier),
     redirectUri,
+    purpose,
   });
   savePending({
     state,
@@ -170,6 +187,7 @@ export async function startSocialLogin(
     verifier,
     redirectUri,
     returnTo,
+    purpose,
     createdAt: Date.now(),
   });
 

@@ -5,11 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AdSlot } from "@/components/ad-slot";
 import { SocialButtons } from "@/components/social-buttons";
+import { isMock } from "@/lib/api-client";
 import { login } from "@/lib/auth";
+import { emailLogin, emailSignup, userKey } from "@/lib/auth-api";
 import {
   CODE_LENGTH,
-  RESEND_AFTER_MS,
   sendVerificationCode,
+  takeVerificationToken,
   verifyCode,
 } from "@/lib/email-verification";
 
@@ -47,6 +49,7 @@ export function AuthForm({ mode, embedded = false, onDone, onSwitch }: Props) {
   const [devCode, setDevCode] = useState("");
   const [expiresAt, setExpiresAt] = useState(0);
   const [sentAt, setSentAt] = useState(0);
+  const [resendAfterMs, setResendAfterMs] = useState(0);
   const [now, setNow] = useState(0);
 
   const normalized = email.trim().toLowerCase();
@@ -59,11 +62,8 @@ export function AuthForm({ mode, embedded = false, onDone, onSwitch }: Props) {
     return () => clearInterval(timer);
   }, [step, sentAt]);
 
-  // `socialNew` is set for a social login: true if it created the account. The email flow decides
-  // by the page it is on.
-  const finish = (socialNew?: boolean) => {
-    const created = socialNew ?? signup;
-    if (socialNew === undefined) login(normalized); // (social login already signed in)
+  // `created` is true when this sign-in made a new account (social login already signed in by itself).
+  const finish = (created: boolean) => {
     if (embedded) onDone?.(created);
     else router.push(created ? "/studio" : "/mypage");
   };
@@ -77,6 +77,7 @@ export function AuthForm({ mode, embedded = false, onDone, onSwitch }: Props) {
     setDevCode(result.devCode);
     setExpiresAt(result.expiresAt);
     setSentAt(result.sentAt);
+    setResendAfterMs(result.resendAfterMs);
     setNow(Date.now());
     setCode("");
     setStep("code");
@@ -93,8 +94,21 @@ export function AuthForm({ mode, embedded = false, onDone, onSwitch }: Props) {
       return setError("비밀번호가 서로 달라요.");
     if (signup && !agreed)
       return setError("이용약관과 개인정보처리방침에 동의해 주세요.");
-    if (!signup) return finish();
+    if (!signup) return void doLogin();
     sendCode();
+  };
+
+  const doLogin = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      login(userKey(await emailLogin(normalized, password)));
+      finish(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "로그인하지 못했어요.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const check = async (value: string) => {
@@ -103,13 +117,27 @@ export function AuthForm({ mode, embedded = false, onDone, onSwitch }: Props) {
       return setError(`${CODE_LENGTH}자리 숫자를 입력해 주세요.`);
     setBusy(true);
     const result = await verifyCode(normalized, value);
-    setBusy(false);
     if (!result.ok) {
+      setBusy(false);
       setError(result.error);
       if (result.reason !== "wrong") setCode("");
       return;
     }
-    finish();
+    // the email is verified: create the account with that proof, then it is signed in
+    try {
+      const user = await emailSignup(
+        normalized,
+        password,
+        takeVerificationToken(normalized),
+      );
+      login(userKey(user));
+      finish(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "가입하지 못했어요.");
+      setCode("");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const onCodeChange = (raw: string) => {
@@ -125,7 +153,7 @@ export function AuthForm({ mode, embedded = false, onDone, onSwitch }: Props) {
   const inCodeStep = signup && step === "code";
   const titleText = inCodeStep ? "이메일 인증" : signup ? "회원가입" : "로그인";
   const remaining = Math.max(0, expiresAt - now);
-  const resendIn = Math.max(0, sentAt + RESEND_AFTER_MS - now);
+  const resendIn = Math.max(0, sentAt + resendAfterMs - now);
 
   const heading = embedded ? (
     <h2
@@ -147,16 +175,18 @@ export function AuthForm({ mode, embedded = false, onDone, onSwitch }: Props) {
         끝나요.
       </p>
 
-      <div
-        role="note"
-        className="mt-4 rounded-lg border border-dashed border-[color:var(--c-border-f97316)] px-3 py-2.5 text-[11px] leading-5 text-[color:var(--c-text-4a5272)]"
-      >
-        데모 안내: 아직 이메일을 보내는 서버가 없어서 코드를 여기에 보여줘요.
-        실제 서비스에서는 이 칸 없이 이메일로만 도착해요.
-        <div className="mt-1 text-[18px] font-bold tracking-[0.3em] text-[color:var(--c-text-0c1b4c)]">
-          {devCode}
+      {isMock && (
+        <div
+          role="note"
+          className="mt-4 rounded-lg border border-dashed border-[color:var(--c-border-f97316)] px-3 py-2.5 text-[11px] leading-5 text-[color:var(--c-text-4a5272)]"
+        >
+          데모 안내: 아직 이메일을 보내는 서버가 없어서 코드를 여기에 보여줘요.
+          실제 서비스에서는 이 칸 없이 이메일로만 도착해요.
+          <div className="mt-1 text-[18px] font-bold tracking-[0.3em] text-[color:var(--c-text-0c1b4c)]">
+            {devCode}
+          </div>
         </div>
-      </div>
+      )}
 
       <form
         onSubmit={(e) => {
@@ -260,6 +290,14 @@ export function AuthForm({ mode, embedded = false, onDone, onSwitch }: Props) {
           autoComplete={signup ? "new-password" : "current-password"}
           className={input}
         />
+        {!signup && !embedded && (
+          <Link
+            href="/reset-password"
+            className="-mt-1 self-end text-[12px] font-medium text-[color:var(--c-text-7b8497)] hover:text-[color:var(--c-text-2f66f5)]"
+          >
+            비밀번호를 잊으셨나요?
+          </Link>
+        )}
         {signup && (
           <input
             type="password"
@@ -321,10 +359,13 @@ export function AuthForm({ mode, embedded = false, onDone, onSwitch }: Props) {
         <span className="h-px flex-1 bg-[color:var(--c-bg-edf0f4)]" />
       </div>
       <SocialButtons mode={mode} onSuccess={(isNew) => finish(isNew)} />
-      <p className="mt-4 rounded-lg bg-[color:var(--c-bg-fafafc)] px-3 py-2.5 text-[11px] leading-5 text-[color:var(--c-text-8891a5)]">
-        데모 안내: 아직 서버가 연결되지 않아 비밀번호는 저장·검증하지 않고,
-        이메일만 이 브라우저에 보관해요. 저장한 데이터도 이 브라우저에만 남아요.
-      </p>
+      {isMock && (
+        <p className="mt-4 rounded-lg bg-[color:var(--c-bg-fafafc)] px-3 py-2.5 text-[11px] leading-5 text-[color:var(--c-text-8891a5)]">
+          데모 안내: 아직 서버가 연결되지 않아 비밀번호는 저장·검증하지 않고,
+          이메일만 이 브라우저에 보관해요. 저장한 데이터도 이 브라우저에만
+          남아요.
+        </p>
+      )}
     </>
   );
 

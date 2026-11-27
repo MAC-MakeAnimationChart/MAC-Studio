@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { Analytics } from "@/components/analytics";
 import { AppToaster } from "@/components/app-toaster";
 import { AuthModalProvider } from "@/components/auth-modal";
+import { SessionRestore } from "@/components/session-restore";
 import { SiteFooter } from "@/components/site-footer";
 import { StorageCleanup } from "@/components/storage-cleanup";
 import { SiteHeader } from "@/components/site-header";
@@ -56,6 +57,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </AuthModalProvider>
         <AppToaster />
         <StorageCleanup />
+        <SessionRestore />
         <Analytics />
       </body>
     </html>

@@ -1,15 +1,24 @@
 // Email verification for sign-up: send a 6-digit code, then check what the user typed.
 //
-// DEMO IMPLEMENTATION. There is no backend yet, so no email can actually be sent: the code is
-// made in the browser and handed back as `devCode` for the UI to show on screen. This is NOT
-// secure and must be replaced before real use. When a server exists, keep these two function
-// signatures and the result types, and replace the bodies with requests to it (the server
-// emails the code and never returns it). The sign-up form only talks to these two functions.
+// Two modes (lib/api-client.ts `isMock`):
+//  - real: the backend emails the code (POST /auth/email/send-code) and checks it
+//    (POST /auth/email/verify). The challenge id and the resulting proof token live only in this
+//    module's memory; takeVerificationToken() hands the proof to POST /auth/signup once.
+//  - mock: DEMO ONLY. No email is sent: the code is made in the browser and handed back as `devCode`
+//    for the UI to show. NOT secure.
+// The sign-up form only talks to the functions below.
+
+import { ApiError, isMock } from "./api-client";
+import { sendEmailCode, verifyEmailCode } from "./auth-api";
 
 export const CODE_LENGTH = 6;
-export const CODE_TTL_MS = 5 * 60 * 1000; // a code is valid for 5 minutes
-export const RESEND_AFTER_MS = 30 * 1000; // "send again" unlocks after 30 seconds
-export const MAX_ATTEMPTS = 5; // wrong tries before the code is burned and a new one is needed
+export const CODE_TTL_MS = 5 * 60 * 1000; // mock: a code is valid for 5 minutes
+export const RESEND_AFTER_MS = 30 * 1000; // mock: "send again" unlocks after 30 seconds
+export const MAX_ATTEMPTS = 5; // mock: wrong tries before the code is burned
+
+// real mode state (memory only, never persisted)
+let challenge: { email: string; id: string } | null = null;
+let proof: { email: string; token: string } | null = null;
 
 const KEY = "mac-studio:email-verification";
 
@@ -46,11 +55,39 @@ const randomCode = () => {
 };
 
 export type SendResult =
-  | { ok: true; expiresAt: number; sentAt: number; devCode: string }
+  | {
+      ok: true;
+      expiresAt: number;
+      sentAt: number;
+      resendAfterMs: number;
+      devCode: string; // empty with a real backend
+    }
   | { ok: false; error: string; retryInMs?: number };
+
+const messageOf = (e: unknown, fallback: string) =>
+  e instanceof Error && e.message ? e.message : fallback;
 
 export async function sendVerificationCode(email: string): Promise<SendResult> {
   const now = Date.now();
+  if (!isMock) {
+    try {
+      const r = await sendEmailCode(email, "signup");
+      challenge = { email, id: r.challengeId };
+      proof = null;
+      return {
+        ok: true,
+        expiresAt: now + r.expiresIn * 1000,
+        sentAt: now,
+        resendAfterMs: r.resendAfter * 1000,
+        devCode: "",
+      };
+    } catch (e) {
+      return {
+        ok: false,
+        error: messageOf(e, "인증코드를 보내지 못했어요."),
+      };
+    }
+  }
   const current = read();
   if (
     current &&
@@ -81,6 +118,7 @@ export async function sendVerificationCode(email: string): Promise<SendResult> {
     ok: true,
     expiresAt: next.expiresAt,
     sentAt: next.sentAt,
+    resendAfterMs: RESEND_AFTER_MS,
     devCode: next.code,
   };
 }
@@ -98,6 +136,27 @@ export async function verifyCode(
   email: string,
   input: string,
 ): Promise<VerifyResult> {
+  if (!isMock) {
+    if (!challenge || challenge.email !== email)
+      return {
+        ok: false,
+        reason: "none",
+        error: "인증코드를 먼저 받아 주세요.",
+      };
+    try {
+      const r = await verifyEmailCode(challenge.id, input.trim());
+      proof = { email, token: r.verificationToken };
+      return { ok: true };
+    } catch (e) {
+      // a wrong code keeps the same challenge so the user can retype; anything else needs a new code
+      const wrong = e instanceof ApiError && e.code === "INVALID_VERIFICATION";
+      return {
+        ok: false,
+        reason: wrong ? "wrong" : "locked",
+        error: messageOf(e, "인증하지 못했어요. 새 코드를 받아 주세요."),
+      };
+    }
+  }
   const p = read();
   if (!p || p.email !== email)
     return { ok: false, reason: "none", error: "인증코드를 먼저 받아 주세요." };
@@ -140,6 +199,16 @@ export async function verifyCode(
   return { ok: true };
 }
 
+// The proof of a verified email, for POST /auth/signup. Usable once (the backend consumes it too).
+export function takeVerificationToken(email: string): string {
+  if (isMock) return "mock";
+  const token = proof && proof.email === email ? proof.token : "";
+  proof = null;
+  return token;
+}
+
 export function clearVerification() {
   write(null);
+  challenge = null;
+  proof = null;
 }

@@ -3,16 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ApiError } from "@/lib/api-client";
+import { ApiError, isMock } from "@/lib/api-client";
 import {
-  acceptTerms,
+  restoreSession,
   socialLogin,
+  socialReauth,
+  socialSignup,
   userKey,
-  type AuthUser,
   type Provider,
-  type SocialLoginResponse,
 } from "@/lib/auth-api";
-import { login, logout } from "@/lib/auth";
+import { login } from "@/lib/auth";
 import {
   PROVIDERS,
   SOCIAL_MESSAGE,
@@ -27,7 +27,7 @@ import {
 // it. Without an opener (popup blocked, so the whole page was used) it logs in and moves on itself.
 type Step =
   | { kind: "working" }
-  | { kind: "terms"; res: SocialLoginResponse; pending: Pending }
+  | { kind: "terms"; pending: Pending } // new identity: no account exists until the terms are accepted
   | { kind: "error"; message: string };
 
 const fail = (code: string, message: string): SocialOutcome => ({
@@ -69,7 +69,7 @@ export function SocialCallback({ provider }: { provider: Provider }) {
       return;
     }
     if (outcome.ok) {
-      login(userKey(outcome.user));
+      if ("user" in outcome) login(userKey(outcome.user));
       router.replace(pending.returnTo || "/mypage");
     } else setStep({ kind: "error", message: outcome.message });
   };
@@ -92,27 +92,38 @@ export function SocialCallback({ provider }: { provider: Provider }) {
     if (params.get("error") || !code)
       return stop("ACCESS_DENIED", `${name} 로그인을 취소했어요.`);
 
-    socialLogin({
+    const request = {
       provider,
       code,
       codeVerifier: pending.verifier,
+      state: pending.state,
       redirectUri: pending.redirectUri,
-    })
-      .then((res) => {
-        if (res.needsTerms) setStep({ kind: "terms", res, pending });
-        else
-          report(pending, {
-            ok: true,
-            user: res.user,
-            isNewUser: res.isNewUser,
-          });
-      })
-      .catch((e: unknown) =>
-        stop(
-          e instanceof ApiError ? e.code : "UNKNOWN",
-          e instanceof Error ? e.message : "로그인하지 못했어요.",
-        ),
+    };
+    const onError = (e: unknown) =>
+      stop(
+        e instanceof ApiError ? e.code : "UNKNOWN",
+        e instanceof Error ? e.message : "로그인하지 못했어요.",
       );
+
+    if (pending.purpose === "reauth") {
+      // withdrawal check: this window has no access token yet (it is a popup), so get one first
+      restoreSession()
+        .then((r) => {
+          if (!isMock && r.kind !== "user")
+            throw new ApiError("UNAUTHORIZED", "로그인이 필요해요.", 401);
+          return socialReauth(request);
+        })
+        .then(() => report(pending, { ok: true, reauth: true }))
+        .catch(onError);
+      return;
+    }
+
+    socialLogin(request)
+      .then((res) => {
+        if (res.kind === "signup") setStep({ kind: "terms", pending });
+        else report(pending, { ok: true, user: res.user, isNewUser: false });
+      })
+      .catch(onError);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once on arrival
   }, []);
 
@@ -120,20 +131,20 @@ export function SocialCallback({ provider }: { provider: Provider }) {
     if (step.kind !== "terms") return;
     setBusy(true);
     try {
-      const user: AuthUser = await acceptTerms();
-      report(step.pending, { ok: true, user, isNewUser: step.res.isNewUser });
+      // creates the account (the backend finds the pending identity through its signup cookie)
+      const user = await socialSignup();
+      report(step.pending, { ok: true, user, isNewUser: true });
     } catch (e) {
       setBusy(false);
       setStep({
         kind: "error",
-        message: e instanceof Error ? e.message : "동의를 저장하지 못했어요.",
+        message: e instanceof Error ? e.message : "가입하지 못했어요.",
       });
     }
   };
 
   const decline = () => {
     if (step.kind !== "terms") return;
-    logout(); // the session the backend already issued is dropped
     report(
       step.pending,
       fail("TERMS_DECLINED", "약관에 동의해야 가입할 수 있어요."),

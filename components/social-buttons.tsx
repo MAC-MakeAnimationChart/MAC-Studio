@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { login } from "@/lib/auth";
-import { userKey, type Provider } from "@/lib/auth-api";
+import { restoreSession, userKey, type Provider } from "@/lib/auth-api";
 import { PROVIDERS, startSocialLogin } from "@/lib/social-auth";
 
 // Brand colors follow each provider's login-button guidelines, so they do not change in dark mode.
@@ -82,6 +82,10 @@ export function SocialButtons({ mode, onSuccess }: Props) {
       if (outcome.code !== "ACCESS_DENIED") setError(outcome.message);
       return;
     }
+    // The popup is a separate window, so the access token it received is not in this one. The refresh
+    // cookie is shared: ask for a token for this window.
+    if ("reauth" in outcome) return; // (only the withdraw page asks for that)
+    await restoreSession();
     login(userKey(outcome.user));
     onSuccess(outcome.isNewUser);
   };
