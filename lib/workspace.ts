@@ -138,7 +138,8 @@ export function selectChart(type: string) {
       ? defaultHierarchy(dataset)
       : { groupCol: null, labelCol: chart.labelCol };
     const followsColumns =
-      chart.title === autoTitle(dataset, chart.labelCol, chart.valueCol);
+      chart.title ===
+      autoTitle(dataset, chart.labelCol, chart.valueCol, chart.type);
     return set({
       chart: {
         ...chart,
@@ -147,7 +148,7 @@ export function selectChart(type: string) {
         extraCols: multi ? defaultExtraCols(dataset, chart.valueCol) : [],
         ...columns,
         title: followsColumns
-          ? autoTitle(dataset, columns.labelCol, chart.valueCol)
+          ? autoTitle(dataset, columns.labelCol, chart.valueCol, type)
           : chart.title,
       },
     });
@@ -161,12 +162,13 @@ export function updateChart(spec: ChartSpec) {
   // keep the auto title in sync with the chosen columns until the user edits it
   const followsColumns =
     dataset &&
-    chart.title === autoTitle(dataset, chart.labelCol, chart.valueCol);
+    chart.title ===
+      autoTitle(dataset, chart.labelCol, chart.valueCol, chart.type);
   const columnsChanged =
     spec.valueCol !== chart.valueCol || spec.labelCol !== chart.labelCol;
   const title =
     dataset && followsColumns && columnsChanged
-      ? autoTitle(dataset, spec.labelCol, spec.valueCol)
+      ? autoTitle(dataset, spec.labelCol, spec.valueCol, chart.type)
       : spec.title;
   set({ chart: { ...spec, id: chart.id, title } });
 }

@@ -506,24 +506,29 @@ export function ChartOptionsPanel({ spec, dataset, def, onChange }: Props) {
   const sortable = def.supports.sortable;
   const topOn = spec.topN !== null;
   // the categories as drawn: after the row pick, sort and top N
+  const observations = def.supports.observations;
   const labels = prepareData(dataset, spec, sortable, def.sort).labels;
 
   return (
     <div className="flex flex-col">
       <Section title="데이터" open>
-        <Field label="항목 이름 열">
-          <select
-            value={spec.labelCol}
-            onChange={(e) => set({ labelCol: Number(e.target.value) })}
-            className={field}
+        {observations !== "pooled" && (
+          <Field
+            label={observations === "grouped" ? "그룹 이름 열" : "항목 이름 열"}
           >
-            {dataset.headers.map((h, i) => (
-              <option key={i} value={i}>
-                {h || `열 ${i + 1}`}
-              </option>
-            ))}
-          </select>
-        </Field>
+            <select
+              value={spec.labelCol}
+              onChange={(e) => set({ labelCol: Number(e.target.value) })}
+              className={field}
+            >
+              {dataset.headers.map((h, i) => (
+                <option key={i} value={i}>
+                  {h || `열 ${i + 1}`}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
         {def.supports.hierarchy && (
           <Field label="상위 항목 열 (묶음)">
             <select
@@ -697,28 +702,47 @@ export function ChartOptionsPanel({ spec, dataset, def, onChange }: Props) {
             이 차트는 값이 큰 순서로 자동 정렬돼요.
           </p>
         )}
-        <div className="flex flex-col gap-1.5">
-          <span className={caption}>
-            표시 개수 (정렬 순서대로 앞에서부터, 비우면 전부)
-          </span>
-          <input
-            type="number"
-            min={1}
-            placeholder="전체"
-            value={spec.topN ?? ""}
-            aria-label="표시 개수"
-            onChange={(e) =>
-              set({
-                topN:
-                  e.target.value === ""
-                    ? null
-                    : Math.max(1, Number(e.target.value) || 1),
-              })
-            }
-            className={field}
-          />
-        </div>
-        {topOn && (
+        {def.supports.binWidth && (
+          <Field label="구간 너비 (비우면 자동)">
+            <input
+              type="number"
+              min={0}
+              step="any"
+              placeholder="자동"
+              value={spec.binWidth ?? ""}
+              onChange={(e) =>
+                set({
+                  binWidth: Number(e.target.value) > 0 ? +e.target.value : null,
+                })
+              }
+              className={field}
+            />
+          </Field>
+        )}
+        {!observations && (
+          <div className="flex flex-col gap-1.5">
+            <span className={caption}>
+              표시 개수 (정렬 순서대로 앞에서부터, 비우면 전부)
+            </span>
+            <input
+              type="number"
+              min={1}
+              placeholder="전체"
+              value={spec.topN ?? ""}
+              aria-label="표시 개수"
+              onChange={(e) =>
+                set({
+                  topN:
+                    e.target.value === ""
+                      ? null
+                      : Math.max(1, Number(e.target.value) || 1),
+                })
+              }
+              className={field}
+            />
+          </div>
+        )}
+        {!observations && topOn && (
           <Check
             label="나머지는 ‘기타’로 묶기"
             checked={spec.groupOthers}
@@ -826,9 +850,11 @@ export function ChartOptionsPanel({ spec, dataset, def, onChange }: Props) {
       </Section>
 
       {def.supports.barWidth && (
-        <Section title="막대">
+        <Section title={observations ? "상자" : "막대"}>
           <Slider
-            label="막대 두께 (남는 폭이 간격이 돼요)"
+            label={
+              observations ? "상자 너비" : "막대 두께 (남는 폭이 간격이 돼요)"
+            }
             value={spec.barWidth}
             min={20}
             max={100}

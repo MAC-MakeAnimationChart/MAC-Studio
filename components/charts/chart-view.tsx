@@ -6,7 +6,7 @@ import { getChart } from './registry'
 // The one component the app uses to draw a chart: dataset + spec in, SVG out.
 export function ChartView({ dataset, spec }: { dataset: Dataset; spec: ChartSpec }) {
   const def = getChart(spec.type)
-  const data = prepareData(dataset, spec, def.supports.sortable, def.sort)
+  const data = prepareData(dataset, spec, def.supports.sortable, def.sort, !!def.supports.observations)
   const { Component } = def
   return <Component spec={spec} data={data} />
 }

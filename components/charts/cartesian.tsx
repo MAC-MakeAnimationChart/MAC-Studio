@@ -8,12 +8,18 @@ import { MAX_ROTATED_LABEL, PLOT_H, SvgText, W, textWidth, type Layout } from '.
 // of the axis is the first tick at or above the data. Max 2,900 -> 0..3,000 in steps of 1,000.
 const TARGET_INTERVALS = 4
 
-function niceScale(dataMax: number) {
-  if (dataMax <= 0) return { step: 1, max: 1 }
-  const raw = dataMax / TARGET_INTERVALS
+// A round step (1, 2, 2.5, 5 x 10^n) at or above `raw`.
+export function niceStep(raw: number) {
   const pow = 10 ** Math.floor(Math.log10(raw))
   const n = raw / pow
-  const step = (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * pow
+  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * pow
+}
+
+// `integer` is for axes that count things: no 0.5 or 2.5 steps.
+function niceScale(dataMax: number, integer = false) {
+  if (dataMax <= 0) return { step: 1, max: 1 }
+  let step = niceStep(dataMax / TARGET_INTERVALS)
+  if (integer && !Number.isInteger(step)) step = step < 1 ? 1 : step * 2
   // round away float noise before ceil so an exact multiple does not gain a tick
   const intervals = Math.ceil(Math.round((dataMax / step) * 1e6) / 1e6)
   return { step, max: step * intervals }
@@ -21,14 +27,18 @@ function niceScale(dataMax: number) {
 
 // `right` is the room right of the plot; charts with a second axis on the right (pareto) need more.
 // `negative` lets the axis go below 0 (waterfall); other charts start at 0 and draw negatives as 0.
-export function cartesian(spec: ChartSpec, data: ChartData, layout: Layout, right = 24, negative = false) {
-  const lo = negative ? Math.min(...data.values, 0) : 0
-  const hi = Math.max(...data.values, 0)
-  const scale = niceScale(hi - lo)
+// `zeroBased: false` fits the axis to the data instead of including 0 (box and strip plots).
+export function cartesian(spec: ChartSpec, data: ChartData, layout: Layout, right = 24, negative = false, { zeroBased = true, integer = false } = {}) {
+  let lo = zeroBased ? (negative ? Math.min(...data.values, 0) : 0) : Math.min(...data.values)
+  let hi = zeroBased ? Math.max(...data.values, 0) : Math.max(...data.values)
+  // all values equal (or none): give the axis some room around them
+  if (!zeroBased && !(hi > lo)) [lo, hi] = Number.isFinite(lo) ? [lo - 1, lo + 1] : [0, 1]
+  const scale = niceScale(hi - lo, integer)
   // whole steps on each side of 0, so 0 is always a tick (same float-noise rounding as niceScale)
   const steps = (v: number) => Math.ceil(Math.round((v / scale.step) * 1e6) / 1e6)
-  const min = lo < 0 ? -steps(-lo) * scale.step : 0
-  const max = lo < 0 ? steps(hi) * scale.step : scale.max
+  const floor = (v: number) => Math.floor(Math.round((v / scale.step) * 1e6) / 1e6)
+  const min = !zeroBased ? floor(lo) * scale.step : lo < 0 ? -steps(-lo) * scale.step : 0
+  const max = !zeroBased || lo < 0 ? steps(hi) * scale.step : scale.max
   const tickCount = Math.round((max - min) / scale.step)
   const decimals = scale.step >= 1 ? (Number.isInteger(scale.step) ? 0 : 1) : Math.ceil(-Math.log10(scale.step))
   const ticks = Array.from({ length: tickCount + 1 }, (_, i) => {
