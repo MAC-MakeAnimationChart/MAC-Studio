@@ -1,6 +1,7 @@
 import { areaChart } from './area-chart'
 import { barChart } from './bar-chart'
 import { boxPlotChart } from './box-plot-chart'
+import { bubbleChart } from './bubble-chart'
 import { densityChart } from './density-chart'
 import { donutChart } from './donut-chart'
 import { errorBarChart } from './error-bar-chart'
@@ -10,6 +11,7 @@ import { lineChart } from './line-chart'
 import { paretoChart } from './pareto-chart'
 import { percentStackedBarChart } from './percent-stacked-bar-chart'
 import { pieChart } from './pie-chart'
+import { scatterChart } from './scatter-chart'
 import { stackedAreaChart } from './stacked-area-chart'
 import { stackedBarChart } from './stacked-bar-chart'
 import { stripPlotChart } from './strip-plot-chart'
@@ -31,6 +33,8 @@ export const CHARTS: ChartDefinition[] = [
   stackedAreaChart,
   pieChart,
   donutChart,
+  scatterChart,
+  bubbleChart,
   histogramChart,
   densityChart,
   boxPlotChart,

@@ -30,6 +30,9 @@ export type ChartSpec = {
   // data: which columns, which rows, how many
   labelCol: number
   valueCol: number // the first (or only) value column
+  xCol: number | null // the x column of charts with two number axes (scatter, bubble); null on other charts
+  sizeCol: number | null // the column that sets point size (bubble)
+  pointLabels: boolean // write each point's name beside it (scatter, bubble)
   extraCols: number[] // more value columns after valueCol, one series each; only charts with supports.multiSeries use them
   errorCol: number | null // the ± column, error bar charts only; null = no error bars
   groupCol: number | null // the upper level each item belongs to (treemap, sunburst); null = items stand alone
@@ -79,21 +82,24 @@ export const subtitleDefaults: TextStyle = {
   align: 'center',
 }
 
+// Korean text, also when a unit follows it: "광고비(만원)".
+const isKorean = (header: string) => /[가-힣]\s*(\([^)]*\))?$/.test(header)
+
 // "월별 방문자" from the item column "월" and the value column "방문자"; "Visitors by Month" for
 // non-Korean headers. The title follows the column choice until the user types their own.
 // A histogram or density plot pools every row, so its title names only the value column: "점수 분포".
 export function autoTitle(dataset: Dataset, labelCol: number, valueCol: number, type?: string) {
   const label = dataset.headers[labelCol]?.trim() ?? ''
   const value = dataset.headers[valueCol]?.trim() ?? ''
-  if ((type === '히스토그램' || type === '밀도 그래프') && value) return /[가-힣)]$/.test(value) ? `${value} 분포` : `Distribution of ${value}`
+  if ((type === '히스토그램' || type === '밀도 그래프') && value) return isKorean(value) ? `${value} 분포` : `Distribution of ${value}`
   if (!label || !value) return value || label
-  if (/[가-힣]$/.test(label)) return `${label}별 ${value}`
+  if (isKorean(label)) return `${label}별 ${value}`
   return `${value} by ${label}`
 }
 
 // A single series needs no legend (the title says what it is); pies and donuts list their slices,
 // and charts with several series need it to tell them apart.
-export const defaultLegend = (type: string, multiSeries = false) => multiSeries || type === '원형 차트' || type === '도넛 차트'
+export const defaultLegend = (type: string, multiSeries = false) => multiSeries || type === '원형 차트' || type === '도넛 차트' || type === '버블 차트'
 
 // One color per series from the 8-color palette, so more would repeat colors
 export const MAX_SERIES = 8
@@ -112,11 +118,19 @@ export function defaultHierarchy(dataset: Dataset): { groupCol: number | null; l
   return textCols.length >= 2 ? { groupCol: textCols[0], labelCol: textCols[1] } : { groupCol: null, labelCol: 0 }
 }
 
+// Columns for a chart with two number axes, as in "제품, 광고비, 매출, 고객 수": x, then y, then the size.
+export function defaultXY(dataset: Dataset, size: boolean) {
+  const numCols = numericColumns(dataset)
+  const xCol = numCols[0] ?? 1
+  const valueCol = numCols[1] ?? xCol
+  return { xCol, valueCol, sizeCol: size ? (numCols[2] ?? valueCol) : null }
+}
+
 // `opts` is the chart's `supports`: multi-series charts start with every number column as a series,
 // charts with an upper level start with it picked when the table has one.
-export function createChartSpec(id: string, type: string, dataset: Dataset, opts: { multiSeries?: boolean; hierarchy?: boolean } = {}): ChartSpec {
+export function createChartSpec(id: string, type: string, dataset: Dataset, opts: { multiSeries?: boolean; hierarchy?: boolean; xy?: boolean; sizeColumn?: boolean } = {}): ChartSpec {
   const numCols = numericColumns(dataset)
-  const valueCol = numCols[0] ?? 1
+  const { xCol, valueCol, sizeCol } = opts.xy ? defaultXY(dataset, !!opts.sizeColumn) : { xCol: null, valueCol: numCols[0] ?? 1, sizeCol: null }
   const { groupCol, labelCol } = opts.hierarchy ? defaultHierarchy(dataset) : { groupCol: null, labelCol: 0 }
   const multiSeries = !!opts.multiSeries
   return {
@@ -124,6 +138,9 @@ export function createChartSpec(id: string, type: string, dataset: Dataset, opts
     type,
     labelCol,
     valueCol,
+    xCol,
+    sizeCol,
+    pointLabels: false,
     extraCols: multiSeries ? defaultExtraCols(dataset, valueCol) : [],
     groupCol,
     // the number column after the value one, as in "평균, 오차"
@@ -135,7 +152,7 @@ export function createChartSpec(id: string, type: string, dataset: Dataset, opts
     sort: 'none',
     topN: null,
     groupOthers: false,
-    title: autoTitle(dataset, labelCol, valueCol, type),
+    title: autoTitle(dataset, xCol ?? labelCol, valueCol, type),
     titleStyle: { ...titleDefaults },
     subtitle: '',
     subtitleStyle: { ...subtitleDefaults },
