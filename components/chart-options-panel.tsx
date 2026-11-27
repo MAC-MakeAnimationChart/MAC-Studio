@@ -719,6 +719,16 @@ export function ChartOptionsPanel({ spec, dataset, def, onChange }: Props) {
             />
           </Field>
         )}
+        {def.supports.smoothing && (
+          <Slider
+            label="곡선 부드러움 (100%가 자동)"
+            value={spec.smoothing}
+            min={25}
+            max={300}
+            unit="%"
+            onChange={(smoothing) => set({ smoothing })}
+          />
+        )}
         {!observations && (
           <div className="flex flex-col gap-1.5">
             <span className={caption}>
@@ -850,10 +860,12 @@ export function ChartOptionsPanel({ spec, dataset, def, onChange }: Props) {
       </Section>
 
       {def.supports.barWidth && (
-        <Section title={observations ? "상자" : "막대"}>
+        <Section title={def.supports.shapeName ?? "막대"}>
           <Slider
             label={
-              observations ? "상자 너비" : "막대 두께 (남는 폭이 간격이 돼요)"
+              def.supports.shapeName
+                ? `${def.supports.shapeName} 너비`
+                : "막대 두께 (남는 폭이 간격이 돼요)"
             }
             value={spec.barWidth}
             min={20}

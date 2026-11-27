@@ -1,6 +1,7 @@
 import { areaChart } from './area-chart'
 import { barChart } from './bar-chart'
 import { boxPlotChart } from './box-plot-chart'
+import { densityChart } from './density-chart'
 import { donutChart } from './donut-chart'
 import { errorBarChart } from './error-bar-chart'
 import { groupedBarChart } from './grouped-bar-chart'
@@ -15,6 +16,7 @@ import { stripPlotChart } from './strip-plot-chart'
 import { waterfallChart } from './waterfall-chart'
 import { sunburstChart } from './sunburst-chart'
 import { treemapChart } from './treemap-chart'
+import { violinPlotChart } from './violin-plot-chart'
 import type { ChartDefinition } from './types'
 
 // The charts the studio can build, in the order they are offered.
@@ -30,7 +32,9 @@ export const CHARTS: ChartDefinition[] = [
   pieChart,
   donutChart,
   histogramChart,
+  densityChart,
   boxPlotChart,
+  violinPlotChart,
   stripPlotChart,
   treemapChart,
   sunburstChart,

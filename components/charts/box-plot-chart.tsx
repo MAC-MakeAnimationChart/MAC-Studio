@@ -67,6 +67,6 @@ export const boxPlotChart: ChartDefinition = {
   desc: '그룹별 중앙값과 퍼진 정도',
   icon: RectangleVertical,
   tint: 'bg-[#F0EBFD]',
-  supports: { barWidth: true, sliceColors: false, axes: true, sortable: false, observations: 'grouped' },
+  supports: { barWidth: true, sliceColors: false, axes: true, sortable: false, observations: 'grouped', shapeName: '상자' },
   Component: BoxPlotChart,
 }
