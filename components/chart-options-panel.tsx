@@ -514,7 +514,13 @@ export function ChartOptionsPanel({ spec, dataset, def, onChange }: Props) {
       <Section title="데이터" open>
         {observations !== "pooled" && (
           <Field
-            label={observations === "grouped" ? "그룹 이름 열" : "항목 이름 열"}
+            label={
+              observations === "grouped"
+                ? "그룹 이름 열"
+                : observations === "points"
+                  ? "점 이름 열"
+                  : "항목 이름 열"
+            }
           >
             <select
               value={spec.labelCol}
@@ -552,6 +558,21 @@ export function ChartOptionsPanel({ spec, dataset, def, onChange }: Props) {
             </select>
           </Field>
         )}
+        {def.supports.xy && (
+          <Field label="가로축(X) 열">
+            <select
+              value={spec.xCol ?? ""}
+              onChange={(e) => set({ xCol: Number(e.target.value) })}
+              className={field}
+            >
+              {numCols.map((i) => (
+                <option key={i} value={i}>
+                  {dataset.headers[i] || `열 ${i + 1}`}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
         {def.supports.multiSeries ? (
           <SeriesPicker
             dataset={dataset}
@@ -560,7 +581,7 @@ export function ChartOptionsPanel({ spec, dataset, def, onChange }: Props) {
             onChange={(patch) => set(patch)}
           />
         ) : (
-          <Field label="값 열">
+          <Field label={def.supports.xy ? "세로축(Y) 열" : "값 열"}>
             <select
               value={spec.valueCol}
               onChange={(e) => set({ valueCol: Number(e.target.value) })}
@@ -573,6 +594,28 @@ export function ChartOptionsPanel({ spec, dataset, def, onChange }: Props) {
               ))}
             </select>
           </Field>
+        )}
+        {def.supports.sizeColumn && (
+          <Field label="원 크기 열">
+            <select
+              value={spec.sizeCol ?? ""}
+              onChange={(e) => set({ sizeCol: Number(e.target.value) })}
+              className={field}
+            >
+              {numCols.map((i) => (
+                <option key={i} value={i}>
+                  {dataset.headers[i] || `열 ${i + 1}`}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
+        {def.supports.xy && (
+          <Check
+            label="점 이름 표시 (점이 100개 이하일 때)"
+            checked={spec.pointLabels}
+            onChange={(pointLabels) => set({ pointLabels })}
+          />
         )}
         {def.supports.errorBars && (
           <Field label="오차 열 (±)">
@@ -922,30 +965,32 @@ export function ChartOptionsPanel({ spec, dataset, def, onChange }: Props) {
         </Section>
       )}
 
-      <Section title="범례">
-        <Check
-          label="범례 표시"
-          checked={spec.legend}
-          onChange={(legend) => set({ legend })}
-        />
-        {spec.legend && (
-          <>
-            <Slider
-              label="글자 크기"
-              value={spec.legendSize}
-              min={9}
-              max={20}
-              unit="px"
-              onChange={(legendSize) => set({ legendSize })}
-            />
-            <Check
-              label="굵게"
-              checked={spec.legendBold}
-              onChange={(legendBold) => set({ legendBold })}
-            />
-          </>
-        )}
-      </Section>
+      {!def.supports.noLegend && (
+        <Section title="범례">
+          <Check
+            label="범례 표시"
+            checked={spec.legend}
+            onChange={(legend) => set({ legend })}
+          />
+          {spec.legend && (
+            <>
+              <Slider
+                label="글자 크기"
+                value={spec.legendSize}
+                min={9}
+                max={20}
+                unit="px"
+                onChange={(legendSize) => set({ legendSize })}
+              />
+              <Check
+                label="굵게"
+                checked={spec.legendBold}
+                onChange={(legendBold) => set({ legendBold })}
+              />
+            </>
+          )}
+        </Section>
+      )}
 
       <Section title="글꼴">
         <Field label="차트 안의 모든 글자">

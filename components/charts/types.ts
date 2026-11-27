@@ -15,8 +15,12 @@ export type ChartSupports = {
   multiSeries?: boolean // several value columns can be picked, one series each (grouped / stacked bars, ...)
   hierarchy?: boolean // an upper-level column can be picked to group the items (treemap, sunburst)
   // each row is one observation of the value column (distribution charts): no sort or "show N", blank cells are left out.
-  // 'grouped' charts draw one shape per distinct label, 'pooled' charts ignore the label column.
-  observations?: 'grouped' | 'pooled'
+  // 'grouped' charts draw one shape per distinct label, 'pooled' charts ignore the label column,
+  // 'points' charts draw one mark per row and use the label as its name.
+  observations?: 'grouped' | 'pooled' | 'points'
+  xy?: boolean // an x number column is picked besides the value (y) column (scatter, bubble)
+  sizeColumn?: boolean // a third number column sets the size of each point (bubble)
+  noLegend?: boolean // there is nothing a legend could say, so the options panel hides it
   binWidth?: boolean // the width of the value bins can be set (histogram)
   smoothing?: boolean // how smooth the density curve is can be set (density, violin)
   shapeName?: string // what the barWidth / barShade section calls the shape when it is not a bar

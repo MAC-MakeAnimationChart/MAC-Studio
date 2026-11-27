@@ -6,6 +6,7 @@ import {
   defaultExtraCols,
   defaultHierarchy,
   defaultLegend,
+  defaultXY,
   normalizeChart,
   type ChartSpec,
 } from "./chart-spec";
@@ -137,18 +138,33 @@ export function selectChart(type: string) {
     const columns = supports.hierarchy
       ? defaultHierarchy(dataset)
       : { groupCol: null, labelCol: chart.labelCol };
+    // charts with two number axes pick their own columns; others drop x and size
+    const axes = supports.xy
+      ? defaultXY(dataset, !!supports.sizeColumn)
+      : { xCol: null, sizeCol: null, valueCol: chart.valueCol };
     const followsColumns =
       chart.title ===
-      autoTitle(dataset, chart.labelCol, chart.valueCol, chart.type);
+      autoTitle(
+        dataset,
+        chart.xCol ?? chart.labelCol,
+        chart.valueCol,
+        chart.type,
+      );
     return set({
       chart: {
         ...chart,
         type,
         legend: defaultLegend(type, multi),
-        extraCols: multi ? defaultExtraCols(dataset, chart.valueCol) : [],
+        extraCols: multi ? defaultExtraCols(dataset, axes.valueCol) : [],
         ...columns,
+        ...axes,
         title: followsColumns
-          ? autoTitle(dataset, columns.labelCol, chart.valueCol, type)
+          ? autoTitle(
+              dataset,
+              axes.xCol ?? columns.labelCol,
+              axes.valueCol,
+              type,
+            )
           : chart.title,
       },
     });
@@ -160,15 +176,17 @@ export function updateChart(spec: ChartSpec) {
   const { dataset, chart } = state;
   if (!chart) return;
   // keep the auto title in sync with the chosen columns until the user edits it
+  // charts with two number axes are titled after the x column, not the point names
+  const named = (s: ChartSpec) => s.xCol ?? s.labelCol;
   const followsColumns =
     dataset &&
     chart.title ===
-      autoTitle(dataset, chart.labelCol, chart.valueCol, chart.type);
+      autoTitle(dataset, named(chart), chart.valueCol, chart.type);
   const columnsChanged =
-    spec.valueCol !== chart.valueCol || spec.labelCol !== chart.labelCol;
+    spec.valueCol !== chart.valueCol || named(spec) !== named(chart);
   const title =
     dataset && followsColumns && columnsChanged
-      ? autoTitle(dataset, spec.labelCol, spec.valueCol, chart.type)
+      ? autoTitle(dataset, named(spec), spec.valueCol, chart.type)
       : spec.title;
   set({ chart: { ...spec, id: chart.id, title } });
 }

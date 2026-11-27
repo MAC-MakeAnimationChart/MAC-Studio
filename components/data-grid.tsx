@@ -33,7 +33,9 @@ export function DataGrid({ dataset, spec, onDataset, onSpec }: Props) {
   const end = Math.min(spec.rowEnd ?? total, total);
   const rangeIsAll = start === 1 && end === total;
   // every column drawn as a series (more than one only on multi-series charts)
-  const valueCols = [spec.valueCol, ...spec.extraCols];
+  const valueCols = [spec.xCol, spec.valueCol, spec.sizeCol, ...spec.extraCols]
+    .filter((c) => c !== null)
+    .filter((c, i, all) => all.indexOf(c) === i);
   const visible = Math.min(total, MAX_EDIT_ROWS);
 
   const editCell = (r: number, c: number, value: string) =>
