@@ -110,6 +110,19 @@ export const SITE_PAGES: SitePage[] = [
     index: false,
   },
   {
+    path: "/reset-password",
+    title: "비밀번호 재설정",
+    description:
+      "가입한 이메일로 인증코드를 받아 MAC Studio 비밀번호를 새로 정해요.",
+    index: false,
+  },
+  {
+    path: "/withdraw",
+    title: "회원 탈퇴",
+    description: "MAC Studio 계정을 탈퇴해요. 탈퇴 전에 안내를 꼭 확인하세요.",
+    index: false,
+  },
+  {
     path: "/mypage",
     title: "마이페이지",
     description: "저장한 데이터셋과 차트를 모아 보고 다시 편집해요.",

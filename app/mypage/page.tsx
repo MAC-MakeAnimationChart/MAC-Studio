@@ -333,6 +333,15 @@ export default function MyPage() {
         </div>
       )}
 
+      <p className="mt-10 text-right text-[11px]">
+        <Link
+          href="/withdraw"
+          className="text-[color:var(--c-text-99a1b1)] hover:text-[color:var(--c-text-e0553a)] hover:underline"
+        >
+          회원 탈퇴
+        </Link>
+      </p>
+
       {pending?.kind === "folder" && pendingFolder && (
         <ConfirmDialog
           title="데이터셋을 삭제할까요?"

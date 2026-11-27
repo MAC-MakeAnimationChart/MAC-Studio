@@ -40,6 +40,7 @@ lib/            차트 옵션·데이터 처리, 파일 파싱, 내보내기, �
 docs/TODO.md    해야 할 일
 docs/SEO.md     검색엔진 최적화 가이드와 점검 목록
 docs/EH_TODO.md 사람이 해야 하는 일·사람의 결정이 필요한 일(AI가 대신 정하지 않는 것)
+docs/BE_INTEGRATION.md 백엔드(MAC-BE) 연동 체크리스트. 백엔드 연결 작업(TODO 6단계) 전에 먼저 읽을 것
 ```
 
 사용자 흐름: 업로드(`/studio`) → 데이터 확인 → 차트 선택 → `/studio/loading` → 편집(`/studio/editor`).

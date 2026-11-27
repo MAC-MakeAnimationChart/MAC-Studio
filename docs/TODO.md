@@ -150,15 +150,18 @@
 
 ## 6단계. 백엔드 연결 (백엔드 API가 나온 뒤)
 
-명세는 백엔드 팀에 전달한 문서(소셜 로그인 API, 저장 API)를 기준으로 합니다.
+**기준 문서는 [docs/BE_INTEGRATION.md](BE_INTEGRATION.md)입니다**(MAC-BE 저장소를 읽고 정리한 연동 체크리스트).
+예전에 전달한 명세(`POST /auth/social` + `/me/terms`, 쿠키 세션)는 BE의 실제 설계(Access 토큰 + Bearer, refresh 쿠키,
+증명 방식 이메일 인증, revision 저장)와 다르니 아래 항목은 BE_INTEGRATION.md의 해당 절을 따르세요.
 
-- [ ] **6-1. 환경 설정**: `.env.local`에 `NEXT_PUBLIC_API_BASE`를 넣으면 가짜 서버 대신 실제 API를 부릅니다(`.env.example` 참고).
+- [ ] **6-1. 환경 설정**: `.env.local`에 `NEXT_PUBLIC_IS_MOCK=false`와 `NEXT_PUBLIC_API_BASE=http://localhost:8080`을 넣으면 가짜 서버 대신 실제 BE를 부릅니다(`.env.example` 참고). 이메일 가입·로그인·세션 복원·소셜 코드는 BE 계약대로 이미 작성돼 있고, 실제 BE로 확인만 남았어요.
 - [ ] **6-2. 소셜 로그인 키 연결**: 카카오/구글/네이버 콘솔에서 클라이언트 ID를 받아 `NEXT_PUBLIC_*_CLIENT_ID`에 넣고,
   콜백 주소 `https://도메인/auth/callback/{provider}`를 콘솔에 등록. (client secret은 백엔드만)
-- [ ] **6-3. 세션 복원**: 앱이 열릴 때 `GET /me`로 로그인 상태를 확인하도록 `lib/auth.ts`를 바꿉니다.
+- [ ] **6-3. 세션 복원**: 앱이 열릴 때 `POST /auth/refresh`로 로그인 상태를 복원하도록 `lib/auth.ts`와 `lib/api-client.ts`(Bearer·401 재시도)를 바꿉니다. (BE_INTEGRATION §2·§3)
 - [ ] **6-4. 로그아웃·가입 API 연결**: `POST /auth/logout`, 이메일 가입·인증코드·로그인 API(`lib/email-verification.ts`, `components/auth-form.tsx`).
 - [ ] **6-5. 저장 API 연결**: `lib/saved.ts`의 저장·불러오기·삭제를 데이터셋·차트 API로 교체. **바뀐 게 없으면 요청을 보내지 않는** 현재 규칙은 유지.
-- [ ] **6-6. 저장 용량·한도를 서버 값(`GET /me`의 `limits`)으로 교체**.
+- [ ] **6-6. 저장 용량·한도를 서버 값으로 교체**(BE에 조회 API가 아직 없음 — BE_INTEGRATION §7-5).
+- [x] **6-8. 새 화면**: 비밀번호 재설정(`/reset-password`), 회원 탈퇴(`/withdraw`, 소셜은 재인증 먼저) 만들었어요. 실제 BE·소셜 제공사로 확인만 남았어요. BE_INTEGRATION §5·§6.
 - [ ] **6-7. 브라우저 저장소 정리 코드 줄이기**: 저장이 서버로 옮겨가면 `lib/storage-cleanup.ts`의 "계정별 저장 데이터 90일 정리"와
   마이페이지의 90일 안내 문구를 제거하고, 로그인 표시(30일) 규칙은 서버 세션 만료로 대체합니다. 가짜 서버용 키(`mac-studio:mock:*`)도 지웁니다.
 

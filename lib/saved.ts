@@ -14,6 +14,15 @@ export type SavedDataset = {
   date: string
   dataset: Dataset
   charts: ChartSpec[]
+  // Where this folder lives on the backend (ids and revisions), once it has been synced
+  // (lib/saved-sync.ts). Absent in mock mode and until the first successful sync.
+  sync?: FolderSync
+}
+
+export type FolderSync = {
+  datasetId: string
+  datasetRevision: string
+  charts: Record<string, { id: string; revision: string }> // by local chart id
 }
 
 export { FREE_UPLOAD_MB, MEMBER_UPLOAD_MB, MEMBER_STORAGE_MB } from './limits'
@@ -40,6 +49,16 @@ export function useSaved(email: string | null): SavedDataset[] {
       return []
     }
   }, [raw])
+}
+
+// The current list, read outside React (for work that finishes after the screen has moved on).
+export function readSaved(email: string): SavedDataset[] {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(keyFor(email)) ?? '[]')
+    return Array.isArray(parsed) ? (parsed as SavedDataset[]) : []
+  } catch {
+    return []
+  }
 }
 
 export function writeSaved(email: string, list: SavedDataset[]): boolean {
