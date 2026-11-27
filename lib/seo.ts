@@ -51,7 +51,7 @@ export const SITE_PAGES: SitePage[] = [
     title: "MAC Studio – 무료 차트 만들기, CSV·엑셀을 차트로",
     description: SITE_DESCRIPTION,
     index: true,
-    lastModified: "2026-11-23",
+    lastModified: "2026-11-27",
     changeFrequency: "weekly",
     priority: 1,
   },
@@ -61,7 +61,7 @@ export const SITE_PAGES: SitePage[] = [
     description:
       "CSV·엑셀 파일을 올리고 차트를 하나 고르면, 편집 화면에서 제목·색상·범례·글꼴·여백까지 다듬어 JPG·PNG·TIFF로 내려받을 수 있어요. 회원가입 없이 바로 시작하는 무료 차트 만들기 스튜디오이고, 파일은 내 브라우저 안에서만 처리돼요.",
     index: true,
-    lastModified: "2026-11-23",
+    lastModified: "2026-11-27",
     changeFrequency: "weekly",
     priority: 0.9,
   },
@@ -71,7 +71,7 @@ export const SITE_PAGES: SitePage[] = [
     description:
       "차트가 잘 그려지는 표 모양과 자주 생기는 문제의 해결법, 차트별로 필요한 데이터, 내려받아 쓸 수 있는 샘플 CSV, AI에 표 정리를 맡기는 프롬프트까지 한곳에 모았어요. 엑셀 차트를 만들기 전에 확인해 보세요.",
     index: true,
-    lastModified: "2026-11-23",
+    lastModified: "2026-11-27",
     changeFrequency: "monthly",
     priority: 0.7,
   },

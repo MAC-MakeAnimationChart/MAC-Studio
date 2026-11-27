@@ -14,6 +14,10 @@ export type ChartSupports = {
   errorBars?: boolean // a ± column can be picked (error bar chart)
   multiSeries?: boolean // several value columns can be picked, one series each (grouped / stacked bars, ...)
   hierarchy?: boolean // an upper-level column can be picked to group the items (treemap, sunburst)
+  // each row is one observation of the value column (distribution charts): no sort or "show N", blank cells are left out.
+  // 'grouped' charts draw one shape per distinct label, 'pooled' charts ignore the label column.
+  observations?: 'grouped' | 'pooled'
+  binWidth?: boolean // the width of the value bins can be set (histogram)
 }
 
 // One entry per chart type. To add a chart: write <name>-chart.tsx exporting a definition,

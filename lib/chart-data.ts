@@ -25,7 +25,8 @@ const byName = new Intl.Collator('ko', { numeric: true, sensitivity: 'base' })
 // "기타" if asked). `allowSort` is false for charts where row order is the meaning (line charts).
 // `fixedSort` is for charts that always use one order (pareto), whatever the user picked.
 // Sorting by value uses the first series; "기타" sums each series on its own.
-export function prepareData(ds: Dataset, spec: ChartSpec, allowSort: boolean, fixedSort?: RowSort): ChartData {
+// With `observations` (distribution charts) rows without a number are left out and "show N" is ignored.
+export function prepareData(ds: Dataset, spec: ChartSpec, allowSort: boolean, fixedSort?: RowSort, observations = false): ChartData {
   const sort = fixedSort ?? (allowSort ? spec.sort : 'none')
   let rows: string[][]
   if (spec.rowMode === 'manual') {
@@ -36,6 +37,9 @@ export function prepareData(ds: Dataset, spec: ChartSpec, allowSort: boolean, fi
     const end = Math.min(ds.rows.length, spec.rowEnd ?? ds.rows.length)
     rows = ds.rows.slice(start - 1, Math.max(start - 1, end))
   }
+
+  // a blank cell is a missing observation, not a 0
+  if (observations) rows = rows.filter((r) => (r[spec.valueCol] ?? '').trim() !== '' && Number.isFinite(Number(r[spec.valueCol].replace(/,/g, ''))))
 
   // saved specs may name a column that no longer exists (or the value column twice)
   const extraCols = (spec.extraCols ?? []).filter((c, i, all) => c !== spec.valueCol && c >= 0 && c < ds.headers.length && all.indexOf(c) === i)
@@ -58,7 +62,7 @@ export function prepareData(ds: Dataset, spec: ChartSpec, allowSort: boolean, fi
     items = [...items].sort(order[sort])
   }
 
-  const n = spec.topN
+  const n = observations ? null : spec.topN
   if (n && n > 0 && n < items.length) {
     const kept = items.slice(0, n)
     const rest = items.slice(n)
