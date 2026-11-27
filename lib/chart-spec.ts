@@ -54,6 +54,7 @@ export type ChartSpec = {
   barWidth: number // percent of each category's width, bar charts only
   barShade: number // -50 (darker) .. +50 (lighter), bar charts only
   binWidth: number | null // width of the value bins, histogram only; null = picked from the data
+  smoothing: number // percent of the automatic smoothing of a density curve (density, violin)
   textSize: number // axis labels
   textBold: boolean
   legend: boolean
@@ -80,11 +81,11 @@ export const subtitleDefaults: TextStyle = {
 
 // "월별 방문자" from the item column "월" and the value column "방문자"; "Visitors by Month" for
 // non-Korean headers. The title follows the column choice until the user types their own.
-// A histogram pools every row, so its title names only the value column: "점수 분포".
+// A histogram or density plot pools every row, so its title names only the value column: "점수 분포".
 export function autoTitle(dataset: Dataset, labelCol: number, valueCol: number, type?: string) {
   const label = dataset.headers[labelCol]?.trim() ?? ''
   const value = dataset.headers[valueCol]?.trim() ?? ''
-  if (type === '히스토그램' && value) return /[가-힣)]$/.test(value) ? `${value} 분포` : `Distribution of ${value}`
+  if ((type === '히스토그램' || type === '밀도 그래프') && value) return /[가-힣)]$/.test(value) ? `${value} 분포` : `Distribution of ${value}`
   if (!label || !value) return value || label
   if (/[가-힣]$/.test(label)) return `${label}별 ${value}`
   return `${value} by ${label}`
@@ -144,6 +145,7 @@ export function createChartSpec(id: string, type: string, dataset: Dataset, opts
     barWidth: 60,
     barShade: 0,
     binWidth: null,
+    smoothing: 100,
     textSize: 11,
     textBold: false,
     legend: defaultLegend(type, multiSeries),

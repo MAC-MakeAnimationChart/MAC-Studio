@@ -18,6 +18,8 @@ export type ChartSupports = {
   // 'grouped' charts draw one shape per distinct label, 'pooled' charts ignore the label column.
   observations?: 'grouped' | 'pooled'
   binWidth?: boolean // the width of the value bins can be set (histogram)
+  smoothing?: boolean // how smooth the density curve is can be set (density, violin)
+  shapeName?: string // what the barWidth / barShade section calls the shape when it is not a bar
 }
 
 // One entry per chart type. To add a chart: write <name>-chart.tsx exporting a definition,

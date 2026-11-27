@@ -40,7 +40,9 @@ export function cartesian(spec: ChartSpec, data: ChartData, layout: Layout, righ
   const min = !zeroBased ? floor(lo) * scale.step : lo < 0 ? -steps(-lo) * scale.step : 0
   const max = !zeroBased || lo < 0 ? steps(hi) * scale.step : scale.max
   const tickCount = Math.round((max - min) / scale.step)
-  const decimals = scale.step >= 1 ? (Number.isInteger(scale.step) ? 0 : 1) : Math.ceil(-Math.log10(scale.step))
+  // as many decimals as the step needs: 0.25 takes two, not one
+  let decimals = 0
+  while (decimals < 12 && Math.abs(scale.step * 10 ** decimals - Math.round(scale.step * 10 ** decimals)) > 1e-6) decimals++
   const ticks = Array.from({ length: tickCount + 1 }, (_, i) => {
     const t = Number((min + i * scale.step).toFixed(decimals))
     return t === 0 ? 0 : t // no "-0" label
